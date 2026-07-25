@@ -187,7 +187,7 @@
     <div class="toast" id="toast" style="display:none;"></div>
 
     <script>
-        // ==================== 1. 已填入您的 Supabase 凭证 ====================
+        // ==================== 你的 Supabase 凭证（已填好）====================
         const SUPABASE_URL = 'https://kmajgywqhdvxbmxhuqxa.supabase.co';
         const SUPABASE_ANON_KEY = 'sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW';
         const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
@@ -492,7 +492,6 @@
             });
             $itemsContainer.innerHTML = html;
 
-            // 详情
             $itemsContainer.querySelectorAll('.item-card').forEach(card => {
                 card.addEventListener('click', e => {
                     if (e.target.closest('.admin-btn')) return;
@@ -501,7 +500,6 @@
                 });
             });
 
-            // 管理员按钮
             if (isAdmin) {
                 $itemsContainer.querySelectorAll('.admin-btn.oos').forEach(btn => {
                     btn.addEventListener('click', e => {
@@ -543,13 +541,11 @@
             overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName==='BUTTON') overlay.remove(); });
         }
 
-        // 搜索
         $searchInput.addEventListener('input', () => {
             searchKeyword = $searchInput.value;
             renderItems();
         });
 
-        // ============ CRUD ============
         function openAddModal() {
             if (currentUser.role !== 'admin') return showToast('仅管理员');
             editingItemId = null; $editingItemId.value = '';
@@ -612,7 +608,6 @@
             renderAll();
         }
 
-        // 图片上传
         $('imgUploadBtn').addEventListener('click', () => $('imageInput').click());
         $('imageInput').addEventListener('change', function() {
             const file = this.files[0];
@@ -639,7 +634,6 @@
             reader.readAsDataURL(file);
         });
 
-        // 弹窗按钮
         $('modalCancel').addEventListener('click', closeModal);
         $('modalSave').addEventListener('click', saveItem);
         $('modalDelete').addEventListener('click', () => {
@@ -648,7 +642,6 @@
         $itemModal.addEventListener('click', e => { if (e.target === $itemModal) closeModal(); });
         $fabAdd.addEventListener('click', openAddModal);
 
-        // ============ 全局渲染 ============
         async function renderAll() {
             await fetchAllData();
             renderCategoryTabs();
@@ -658,12 +651,10 @@
             updateUserUI();
         }
 
-        // 定时同步（每10秒拉取最新数据）
         setInterval(async () => {
             if (currentUser) { await fetchAllData(); renderItems(); updateOutOfStockBar(); }
         }, 10000);
 
-        // 启动
         (async function() {
             if (!localStorage.getItem(USERS_KEY)) localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS));
             const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
