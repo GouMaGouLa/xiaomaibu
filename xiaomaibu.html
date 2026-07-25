@@ -362,9 +362,11 @@ if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
                 const badge=$('oosBadge');badge.textContent=cnt;badge.style.display=cnt?'inline-block':'none';
             }
             function updateHorn(){
-                const a=appData.announcements||[];
-                $('adminHornText').textContent=a.length?a.slice(0,10).map(x=>x.content).join('\n'):'暂无公告';
-            }
+    const a=appData.announcements||[];
+    const latest=a.length?a[0].content:'暂无公告';
+    $('hornText').textContent=latest;
+    $('adminHornText').textContent=a.length?a.slice(0,10).map(x=>x.content).join('\n'):'暂无公告';
+}
 
             async function renderAll(){
                 renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();
