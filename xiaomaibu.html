@@ -179,9 +179,15 @@
     <div class="main-content" id="mainContent">
         <!-- 首页 -->
         <div class="page active" id="page-home">
-            <div class="category-sidebar" id="categorySidebar"></div>
-            <div class="product-list" id="productList"></div>
-        </div>
+    <div style="padding:8px;background:#fff;border-bottom:1px solid #e9ecef;display:flex;align-items:center;gap:8px;">
+        <input type="text" id="searchInput" placeholder="🔍 搜索商品..." style="flex:1;padding:8px 12px;border:1.5px solid #e9ecef;border-radius:20px;font-size:13px;outline:none;">
+        <button id="homeAddBtn" style="background:#ff6b35;color:#fff;border:none;border-radius:50%;width:32px;height:32px;font-size:18px;flex-shrink:0;">＋</button>
+    </div>
+    <div style="display:flex;flex:1;overflow:hidden;">
+        <div class="category-sidebar" id="categorySidebar"></div>
+        <div class="product-list" id="productList"></div>
+    </div>
+</div>
         <!-- 缺货页 -->
         <div class="page" id="page-outofstock">
             <div class="oos-header">🚫 缺货商品</div>
@@ -288,6 +294,8 @@
             function renderProductList(listId='productList', filterOos=false){
                 let items=appData.items.filter(i=>activeCat==='all'||i.category===activeCat);
                 if(filterOos)items=items.filter(i=>i.outOfStock);
+                const kw=$('searchInput')?.value?.toLowerCase();
+if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
                 const container=$(listId);
                 const isAdmin=currentUser?.role==='admin';
                 if(!items.length){container.innerHTML='<p style="text-align:center;color:#999;padding:20px;">暂无商品</p>';return;}
