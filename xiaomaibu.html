@@ -13,481 +13,316 @@
             --outofstock-bg: #ffe0e0; --outofstock-text: #b52b2b;
             --shadow: 0 1px 3px rgba(0,0,0,0.06); --radius: 10px;
             --nav-height: 50px; --bottom-nav: 60px;
-            --safe-bottom: env(safe-area-inset-bottom, 0px);
+            --safe-bottom: env(safe-area-inset-bottom, 16px);
         }
         * { margin:0; padding:0; box-sizing:border-box; }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif;
             background: var(--bg); color: var(--text);
             height: 100vh; overflow: hidden;
+            font-size: 15px;
             -webkit-tap-highlight-color: transparent;
             -webkit-user-select: none; user-select: none;
         }
-
-        /* 顶部导航 */
         .top-nav {
             height: var(--nav-height); background: var(--primary); color: #fff;
             display: flex; align-items: center; justify-content: space-between;
             padding: 0 14px; position: relative; z-index: 10;
-            box-shadow: 0 2px 6px rgba(255,107,53,0.2);
         }
         .top-nav .title { font-size: 16px; font-weight: 700; }
-        .top-nav .user-info { font-size: 12px; opacity: 0.9; display: flex; align-items: center; gap: 6px; }
+        .top-nav .user-info { font-size: 12px; opacity: 0.9; display: flex; align-items: center; gap: 6px; cursor: pointer; }
         .top-nav .user-info .dot { width: 6px; height: 6px; border-radius: 50%; background: #4eff4e; }
         .top-nav .user-info.admin .dot { background: #ffd700; }
-
-        /* 主内容区 */
-        .main-content {
-            height: calc(100vh - var(--nav-height) - var(--bottom-nav));
-            overflow: hidden; position: relative;
-        }
+        .main-content { height: calc(100vh - var(--nav-height) - var(--bottom-nav)); overflow: hidden; position: relative; }
         .page { display: none; height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; }
         .page.active { display: flex; }
-
-        /* ========= 首页 ========= */
         #page-home { flex-direction: column; }
-        .category-sidebar {
-            width: 90px; background: #fff; border-right: 1px solid var(--border);
-            overflow-y: auto; flex-shrink: 0;
-        }
-        .cat-item {
-            padding: 14px 8px; text-align: center; font-size: 13px; font-weight: 500;
-            color: var(--text-light); border-bottom: 1px solid #f5f5f5;
-            cursor: pointer; transition: all 0.15s; word-break: break-all;
-        }
-        .cat-item.active { background: #fff5f0; color: var(--primary); font-weight: 700; border-right: 2px solid var(--primary); }
-        .product-list {
-            flex: 1; overflow-y: auto; padding: 8px;
-        }
-        .product-row {
-            display: flex; align-items: center; background: var(--card);
-            border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px;
-            box-shadow: var(--shadow); cursor: pointer; gap: 10px;
-            transition: transform 0.1s; border-left: 3px solid transparent;
-        }
-        .product-row:active { transform: scale(0.98); }
-        .product-row.oos { opacity: 0.55; border-left-color: var(--danger); }
-        .product-img {
-            width: 52px; height: 52px; border-radius: 8px; background: #f0f0f0;
-            flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-            overflow: hidden; font-size: 28px;
-        }
+        .category-sidebar { width: 90px; background: #fff; border-right: 1px solid var(--border); overflow-y: auto; flex-shrink: 0; }
+        .cat-item { padding: 14px 8px; text-align: center; font-size: 15px; font-weight: 500; color: var(--text-light); border-bottom: 1px solid #f5f5f5; cursor: pointer; }
+        .cat-item.active { background: #fff5f0; color: var(--primary); font-weight: 700; }
+        .product-list { flex: 1; overflow-y: auto; padding: 8px; }
+        .product-row { display: flex; align-items: center; background: var(--card); border-radius: var(--radius); padding: 10px 12px; margin-bottom: 8px; box-shadow: var(--shadow); cursor: pointer; gap: 10px; }
+        .product-row.oos { opacity: 0.55; border-left: 3px solid var(--danger); }
+        .product-img { width: 52px; height: 52px; border-radius: 8px; background: #f0f0f0; flex-shrink: 0; display: flex; align-items: center; justify-content: center; overflow: hidden; font-size: 28px; }
         .product-img img { width: 100%; height: 100%; object-fit: cover; }
         .product-info { flex: 1; min-width: 0; }
-        .product-name { font-size: 14px; font-weight: 600; margin-bottom: 3px; }
-        .product-price { font-size: 15px; font-weight: 700; color: var(--danger); }
+        .product-name { font-size: 16px; font-weight: 600; }
+        .product-price { font-size: 17px; font-weight: 700; color: var(--danger); }
         .product-actions { display: flex; flex-direction: column; gap: 6px; }
-        .product-actions .btn-mini {
-            width: 28px; height: 28px; border-radius: 50%; border: none;
-            font-size: 12px; cursor: pointer; background: #f5f5f5;
-            display: flex; align-items: center; justify-content: center;
-        }
-        .btn-mini.edit { color: #2980b9; } .btn-mini.del { color: #e74c3c; } .btn-mini.oos { color: #e67e22; }
-
-        /* ========= 缺货页 ========= */
+        .btn-mini { width: 28px; height: 28px; border-radius: 50%; border: none; font-size: 12px; cursor: pointer; background: #f5f5f5; display: flex; align-items: center; justify-content: center; }
+        .btn-mini.edit { color: #2980b9; } .btn-mini.oos { color: #e67e22; }
         #page-outofstock { flex-direction: column; padding: 12px; }
         .oos-header { font-size: 16px; font-weight: 700; color: var(--outofstock-text); margin-bottom: 10px; }
-        .oos-list .product-row { border-left-color: var(--danger); }
-
-        /* ========= 管理页 ========= */
         #page-admin { flex-direction: column; padding: 14px; gap: 16px; }
         .admin-section { background: #fff; border-radius: var(--radius); padding: 14px; box-shadow: var(--shadow); }
-        .admin-section h4 { font-size: 14px; margin-bottom: 10px; color: var(--text-light); }
-        .admin-btn {
-            display: block; width: 100%; padding: 10px; border-radius: 8px;
-            border: 1.5px solid var(--border); background: #fff; font-size: 14px;
-            text-align: center; cursor: pointer; margin-bottom: 8px; transition: all 0.15s;
-        }
-        .admin-btn:active { background: #f8f8f8; }
+        .admin-section h4 { font-size: 16px; margin-bottom: 10px; color: var(--text-light); }
+        .admin-btn { display: block; width: 100%; padding: 10px; border-radius: 8px; border: 1.5px solid var(--border); background: #fff; font-size: 14px; text-align: center; cursor: pointer; margin-bottom: 8px; }
         .admin-btn.primary { background: var(--primary); color: #fff; border-color: var(--primary); font-weight: 600; }
-        .admin-input {
-            width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--border);
-            font-size: 14px; outline: none; margin-bottom: 8px;
-        }
+        .admin-input { width: 100%; padding: 10px 12px; border-radius: 8px; border: 1.5px solid var(--border); font-size: 14px; outline: none; margin-bottom: 8px; }
         .admin-input:focus { border-color: var(--primary); }
-        .horn-text-admin {
-            background: var(--horn-bg); color: var(--horn-text); padding: 8px 12px;
-            border-radius: 8px; font-size: 12px; max-height: 80px; overflow-y: auto;
-            margin-bottom: 8px; border: 1px solid var(--horn-border);
-        }
-        @keyframes marquee {
-    0% { transform: translateX(0); }
-    100% { transform: translateX(-100%); }
-}
-
-        /* 底部导航 */
-        .bottom-nav {
-            height: calc(var(--bottom-nav) + var(--safe-bottom));
-            padding-bottom: var(--safe-bottom);
-            background: #fff; border-top: 1px solid var(--border);
-            display: flex; position: relative; z-index: 10;
-        }
-        .nav-item {
-            flex: 1; display: flex; flex-direction: column; align-items: center;
-            justify-content: center; font-size: 12px; color: #999; cursor: pointer;
-            transition: all 0.15s; gap: 4px;
-        }
-        .nav-item .icon { font-size: 22px; }
+        @keyframes marquee { 0% { transform: translateX(0); } 100% { transform: translateX(-100%); } }
+        .bottom-nav { height: calc(var(--bottom-nav) + var(--safe-bottom)); padding-bottom: var(--safe-bottom); background: #fff; border-top: 1px solid var(--border); display: flex; position: relative; z-index: 10; }
+        .nav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 14px; color: #999; cursor: pointer; gap: 4px; }
+        .nav-item .icon { font-size: 26px; }
         .nav-item.active { color: var(--primary); font-weight: 600; }
-        .nav-item .badge {
-            background: var(--danger); color: #fff; font-size: 10px;
-            padding: 2px 6px; border-radius: 10px; position: absolute; top: 4px; right: 25%;
-        }
-
-        /* 弹窗 */
-        .modal-overlay {
-            position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200;
-            display: flex; align-items: flex-end; justify-content: center;
-        }
-        .modal-sheet {
-            background: #fff; width: 100%; max-width: 500px; max-height: 80vh;
-            border-radius: 16px 16px 0 0; padding: 20px 16px; overflow-y: auto;
-        }
-        .modal-sheet h4 { font-size: 16px; text-align: center; margin-bottom: 14px; }
-        .modal-sheet input, .modal-sheet select {
-            width: 100%; padding: 10px; border: 1.5px solid var(--border);
-            border-radius: 8px; font-size: 14px; margin-bottom: 10px; outline: none;
-        }
+        .nav-item .badge { background: var(--danger); color: #fff; font-size: 10px; padding: 2px 6px; border-radius: 10px; position: absolute; top: 4px; right: 25%; }
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+        .modal-sheet { background: #fff; width: 100%; max-width: 500px; max-height: 80vh; border-radius: 16px 16px 0 0; padding: 20px 16px; overflow-y: auto; }
+        .modal-sheet h4 { font-size: 18px; text-align: center; margin-bottom: 14px; }
+        .modal-sheet input, .modal-sheet select { width: 100%; padding: 10px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; margin-bottom: 10px; outline: none; }
         .modal-sheet .btn { padding: 10px; border-radius: 8px; font-size: 14px; cursor: pointer; border: none; }
         .modal-sheet .btn.primary { background: var(--primary); color: #fff; font-weight: 600; }
         .modal-sheet .btn.danger { background: #fff; color: var(--danger); border: 1.5px solid var(--danger); }
         .modal-sheet .btn.cancel { background: #eee; }
-        .toast {
-            position: fixed; top: 60px; left: 50%; transform: translateX(-50%);
-            background: #333; color: #fff; padding: 10px 20px; border-radius: 20px;
-            font-size: 13px; z-index: 999; pointer-events: none;
-        }
+        .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: #333; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 13px; z-index: 999; }
     </style>
-    <!-- 登录覆盖层 -->
+</head>
+<body>
 <div class="login-overlay" id="loginOverlay" style="position:fixed;inset:0;background:linear-gradient(135deg,#ff9a56,#ff6b35,#e55a2b);z-index:999;display:flex;align-items:center;justify-content:center;">
     <div style="background:#fff;border-radius:20px;padding:32px 24px;width:90%;max-width:360px;text-align:center;box-shadow:0 20px 50px rgba(0,0,0,0.25);">
         <div style="font-size:56px;">🏪</div>
-        <h2 style="margin-bottom:6px;">小卖部价格本</h2>
-        <p style="font-size:13px;color:#999;margin-bottom:20px;">登录查看商品价格</p>
+        <h2>小卖部价格本</h2>
+        <p style="font-size:15px;color:#999;margin-bottom:20px;">登录查看商品价格</p>
         <input type="text" id="loginAccount" placeholder="账号" style="width:100%;padding:13px;border:2px solid #e9ecef;border-radius:12px;font-size:16px;margin-bottom:12px;text-align:center;outline:none;">
         <input type="password" id="loginPassword" placeholder="密码" style="width:100%;padding:13px;border:2px solid #e9ecef;border-radius:12px;font-size:16px;margin-bottom:12px;text-align:center;outline:none;">
         <div id="loginError" style="color:#e74c3c;font-size:13px;min-height:20px;"></div>
         <button id="loginBtn" style="width:100%;padding:13px;background:#ff6b35;color:#fff;border:none;border-radius:12px;font-size:16px;font-weight:600;margin-top:8px;cursor:pointer;">🔑 登录</button>
-        <p style="font-size:11px;color:#bbb;margin-top:16px;">👤 000 / 000 (管理)<br>👥 111 / 111 | 222 / 222</p>
+        <p style="font-size:13px;color:#bbb;margin-top:16px;">👤 000 / 000 (管理)<br>👥 111 / 111 | 222 / 222</p>
     </div>
-</div>
-</head>
-<body>
-    <!-- 顶部导航 -->
-    <div class="top-nav">
-        <span class="title">🏪 小卖部</span>
-        <span class="user-info" id="userBadge"><span class="dot"></span><span id="userLabel">未登录</span></span>
 </div>
 
-    <!-- 主内容 -->
-    <div class="main-content" id="mainContent">
-       <!-- 首页 -->
-<div class="page active" id="page-home" style="flex-direction:column;">
-    <div id="hornBar" style="background:#fff3cd;color:#856404;padding:8px 12px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;border-bottom:1px solid #ffc107;flex-shrink:0;">
-        <span id="hornText" style="display:inline-block;animation:marquee 12s linear infinite;padding-left:100%;">暂无公告</span>
-    </div>
-    <div style="padding:8px;background:#fff;border-bottom:1px solid #e9ecef;display:flex;align-items:center;gap:8px;flex-shrink:0;">
-        <input type="text" id="searchInput" placeholder="🔍 搜索商品..." style="flex:1;padding:10px 14px;border:1.5px solid #e9ecef;border-radius:20px;font-size:14px;outline:none;">
-        <button id="homeAddBtn" style="background:#ff6b35;color:#fff;border:none;border-radius:50%;width:34px;height:34px;font-size:16px;flex-shrink:0;">🔍</button>
-    </div>
-    <div style="display:flex;flex:1;overflow:hidden;">
-        <div class="category-sidebar" id="categorySidebar"></div>
-        <div class="product-list" id="productList"></div>
-    </div>
+<div class="top-nav">
+    <span class="title">🏪 小卖部</span>
+    <span class="user-info" id="userBadge"><span class="dot"></span><span id="userLabel">未登录</span></span>
 </div>
-        <!-- 缺货页 -->
-        <div class="page" id="page-outofstock">
-            <div class="oos-header">🚫 缺货商品</div>
-            <div class="product-list oos-list" id="oosList"></div>
+
+<div class="main-content" id="mainContent">
+    <div class="page active" id="page-home" style="flex-direction:column;">
+        <div id="hornBar" style="background:#fff3cd;color:#856404;padding:8px 12px;font-size:13px;font-weight:500;white-space:nowrap;overflow:hidden;border-bottom:1px solid #ffc107;flex-shrink:0;">
+            <span id="hornText" style="display:inline-block;animation:marquee 12s linear infinite;padding-left:100%;">暂无公告</span>
         </div>
-        <!-- 管理页 -->
-        <div class="page" id="page-admin">
-            <div class="admin-section">
-                <h4>📝 添加商品</h4>
-                <input class="admin-input" type="text" id="adminName" placeholder="商品名称">
-                <input class="admin-input" type="text" id="adminPrice" placeholder="价格（如：3.5元）">
-                <select class="admin-input" id="adminCategory"><option value="">选择分类</option></select>
-                <input class="admin-input" type="text" id="adminNewCategory" placeholder="或输入新分类名称">
-                <input type="file" accept="image/*" id="adminImageInput" style="display:none;">
-                <button class="admin-btn" id="adminImageBtn">📷 选择图片（可选）</button>
-                <img id="adminImagePreview" style="display:none;width:100%;max-height:150px;object-fit:contain;border-radius:8px;margin-top:6px;">
-                <button class="admin-btn primary" id="adminAddBtn">➕ 添加商品</button>
-            </div>
-            <div class="admin-section">
-                <div class="admin-section">
-    <h4>🏷️ 修改分类名称</h4>
-    <select class="admin-input" id="editCatSelect"></select>
-    <input class="admin-input" type="text" id="editCatName" placeholder="新分类名称">
-    <button class="admin-btn primary" id="editCatBtn">✏️ 修改分类</button>
-    <button class="admin-btn danger" id="deleteCatBtn">🗑️ 删除分类</button>
-</div>
-                <h4>📢 最近公告</h4>
-                <div class="horn-text-admin" id="adminHornText">暂无公告</div>
-            </div>
-            <div class="admin-section">
-                <h4>⚙️ 其他</h4>
-                <button class="admin-btn" id="adminLogoutBtn">🚪 退出登录</button>
-            </div>
+        <div style="padding:8px;background:#fff;border-bottom:1px solid #e9ecef;display:flex;align-items:center;gap:8px;flex-shrink:0;">
+            <input type="text" id="searchInput" placeholder="🔍 搜索商品..." style="flex:1;padding:10px 14px;border:1.5px solid #e9ecef;border-radius:20px;font-size:14px;outline:none;">
+            <button id="homeAddBtn" style="background:#ff6b35;color:#fff;border:none;border-radius:50%;width:34px;height:34px;font-size:16px;flex-shrink:0;">🔍</button>
+        </div>
+        <div style="display:flex;flex:1;overflow:hidden;">
+            <div class="category-sidebar" id="categorySidebar"></div>
+            <div class="product-list" id="productList"></div>
         </div>
     </div>
-
-    <!-- 底部导航 -->
-    <div class="bottom-nav" id="bottomNav">
-        <div class="nav-item active" data-page="page-home"><span class="icon">🏠</span>首页</div>
-        <div class="nav-item" data-page="page-outofstock"><span class="icon">🚫</span>缺货<span class="badge" id="oosBadge" style="display:none;">0</span></div>
-        <div class="nav-item" data-page="page-admin" id="navAdmin"><span class="icon">⚙️</span>管理</div>
+    <div class="page" id="page-outofstock">
+        <div class="oos-header">🚫 缺货商品</div>
+        <div class="product-list oos-list" id="oosList"></div>
     </div>
-
-    <!-- 编辑弹窗 -->
-    <div class="modal-overlay" id="editModal" style="display:none;">
-        <div class="modal-sheet">
-            <h4>✏️ 编辑商品</h4>
-            <input type="text" id="editName" placeholder="名称">
-            <input type="text" id="editPrice" placeholder="价格">
-            <select id="editCategory"><option value="">选择分类</option></select>
-            <div style="display:flex;gap:8px;margin-top:8px;">
-                <button class="btn primary" id="editSave" style="flex:1;">保存</button>
-                <button class="btn danger" id="editDelete" style="flex:1;">删除</button>
-            </div>
-            <button class="btn cancel" id="editCancel" style="width:100%;margin-top:6px;">取消</button>
-            <input type="hidden" id="editId">
+    <div class="page" id="page-admin">
+        <div class="admin-section">
+            <h4>📝 添加商品</h4>
+            <input class="admin-input" type="text" id="adminName" placeholder="商品名称">
+            <input class="admin-input" type="text" id="adminPrice" placeholder="价格（如：3.5元）">
+            <select class="admin-input" id="adminCategory"><option value="">选择分类</option></select>
+            <input class="admin-input" type="text" id="adminNewCategory" placeholder="或输入新分类名称">
+            <input type="file" accept="image/*" id="adminImageInput" style="display:none;">
+            <button class="admin-btn" id="adminImageBtn">📷 选择图片（可选）</button>
+            <img id="adminImagePreview" style="display:none;width:100%;max-height:150px;object-fit:contain;border-radius:8px;margin-top:6px;">
+            <button class="admin-btn primary" id="adminAddBtn">➕ 添加商品</button>
+        </div>
+        <div class="admin-section">
+            <h4>🏷️ 修改分类名称</h4>
+            <select class="admin-input" id="editCatSelect"></select>
+            <input class="admin-input" type="text" id="editCatName" placeholder="新分类名称">
+            <button class="admin-btn primary" id="editCatBtn">✏️ 修改分类</button>
+            <button class="admin-btn danger" id="deleteCatBtn">🗑️ 删除分类</button>
+        </div>
+        <div class="admin-section">
+            <h4>📢 最近公告</h4>
+            <div class="horn-text-admin" id="adminHornText" style="background:#fff3cd;color:#856404;padding:8px 12px;border-radius:8px;font-size:12px;max-height:80px;overflow-y:auto;">暂无公告</div>
+        </div>
+        <div class="admin-section">
+            <button class="admin-btn" id="adminLogoutBtn">🚪 退出登录</button>
         </div>
     </div>
+</div>
 
-    <div class="toast" id="toast" style="display:none;"></div>
+<div class="bottom-nav" id="bottomNav">
+    <div class="nav-item active" data-page="page-home"><span class="icon">🏠</span>首页</div>
+    <div class="nav-item" data-page="page-outofstock"><span class="icon">🚫</span>缺货<span class="badge" id="oosBadge" style="display:none;">0</span></div>
+    <div class="nav-item" data-page="page-admin" id="navAdmin"><span class="icon">⚙️</span>管理</div>
+</div>
 
-    <script>
-        (function() {
-            const SUPABASE_URL = 'https://kmajgywqhdvxbmxhuqxa.supabase.co';
-            const SUPABASE_ANON_KEY = 'sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW';
-            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+<div class="modal-overlay" id="editModal" style="display:none;">
+    <div class="modal-sheet">
+        <h4>✏️ 编辑商品</h4>
+        <input type="text" id="editName" placeholder="名称">
+        <input type="text" id="editPrice" placeholder="价格">
+        <select id="editCategory"><option value="">选择分类</option></select>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn primary" id="editSave" style="flex:1;">保存</button>
+            <button class="btn danger" id="editDelete" style="flex:1;">删除</button>
+        </div>
+        <button class="btn cancel" id="editCancel" style="width:100%;margin-top:6px;">取消</button>
+        <input type="hidden" id="editId">
+    </div>
+</div>
+<div class="toast" id="toast" style="display:none;"></div>
 
-            const USERS_KEY='xmb_users', SESSION_KEY='xmb_session';
-            const DEFAULT_USERS={'000':{password:'000',role:'admin',nickname:'管理员'},'111':{password:'111',role:'viewer',nickname:'店员小王'},'222':{password:'222',role:'viewer',nickname:'店员小李'}};
-            let appData={items:[],categories:[],announcements:[]},currentUser=null,activeCat='all',editingId=null;
+<script>
+(function() {
+    const SUPABASE_URL = 'https://kmajgywqhdvxbmxhuqxa.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-            const $=id=>document.getElementById(id);
-            function showToast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',1800);}
-            function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+    const USERS_KEY='xmb_users', SESSION_KEY='xmb_session';
+    const DEFAULT_USERS={'000':{password:'000',role:'admin',nickname:'管理员'},'111':{password:'111',role:'viewer',nickname:'店员小王'},'222':{password:'222',role:'viewer',nickname:'店员小李'}};
+    let appData={items:[],categories:[],announcements:[]},currentUser=null,activeCat='all',editingId=null;
 
-            function getUsers(){let u=localStorage.getItem(USERS_KEY);if(u)return JSON.parse(u);localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));return DEFAULT_USERS;}
-            function loginCheck(){
-    return false;
-}
+    const $=id=>document.getElementById(id);
+    function showToast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',1800);}
+    function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
+    function getUsers(){let u=localStorage.getItem(USERS_KEY);if(u)return JSON.parse(u);localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));return DEFAULT_USERS;}
+    function loginCheck(){return false;}
 
-            async function fetchAll(){
-                const[a,b,c]=await Promise.all([
-                    supabase.from('items').select('*').order('updated_at',{ascending:false}),
-                    supabase.from('categories').select('*'),
-                    supabase.from('announcements').select('*').order('created_at',{ascending:false}).limit(30)
-                ]);
-                if(a.error||b.error||c.error)return;
-                appData.items=a.data.map(i=>({id:i.id,name:i.name,price:i.price,category:i.category,image:i.image,outOfStock:i.out_of_stock}));
-                appData.categories=b.data.map(i=>i.name);
-                appData.announcements=c.data.map(i=>({content:i.content}));
-            }
-            async function saveItem(it){await supabase.from('items').insert([{name:it.name,price:it.price,category:it.category||'',image:it.image||'',out_of_stock:false}]);}
-            async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});await supabase.from('items').update(f).eq('id',id);}
-            async function delItem(id){await supabase.from('items').delete().eq('id',id);}
-            async function addCat(name){await supabase.from('categories').insert([{name}]);}
-            async function addAnn(content){await supabase.from('announcements').insert([{content,type:'info'}]);}
-            async function initData(){const{c}=await supabase.from('items').select('*',{count:'exact',head:true});if(c===0){for(const n of['零食','饮料','日用品','调料','冷冻食品','酒类'])await addCat(n);
-                const its=[{name:'康师傅红烧牛肉面',price:'3.5元',category:'零食'},{name:'可口可乐330ml',price:'3元',category:'饮料'},{name:'海天酱油500ml',price:'12.5元',category:'调料'},{name:'心相印抽纸',price:'6.9元',category:'日用品'},{name:'三全水饺500g',price:'15.8元',category:'冷冻食品',outOfStock:true},{name:'青岛啤酒330ml',price:'5元',category:'酒类'}];
-                for(const it of its)await saveItem(it);await addAnn('🆕 系统初始化完成');}}
-
-            function renderSidebar(){
-                const sidebar=$('categorySidebar');
-                sidebar.innerHTML='<div class="cat-item active" data-cat="all">全部</div>'+appData.categories.map(c=>`<div class="cat-item" data-cat="${esc(c)}">${esc(c)}</div>`).join('');
-                sidebar.querySelectorAll('.cat-item').forEach(el=>el.addEventListener('click',()=>{
-                    sidebar.querySelectorAll('.cat-item').forEach(e=>e.classList.remove('active'));
-                    el.classList.add('active');activeCat=el.dataset.cat;renderProductList();
-                }));
-            }
-            function renderProductList(listId='productList', filterOos=false){
-                let items=appData.items.filter(i=>activeCat==='all'||i.category===activeCat);
-                if(filterOos)items=items.filter(i=>i.outOfStock);
-                const kw=$('searchInput')?.value?.toLowerCase();
-if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
-                const container=$(listId);
-                const isAdmin=currentUser?.role==='admin';
-                if(!items.length){container.innerHTML='<p style="text-align:center;color:#999;padding:20px;">暂无商品</p>';return;}
-                container.innerHTML=items.map(item=>`
-                    <div class="product-row ${item.outOfStock?'oos':''}" data-id="${item.id}">
-                        <div class="product-img">${item.image?`<img src="${item.image}">`:'📷'}</div>
-                        <div class="product-info"><div class="product-name">${esc(item.name)}</div><div class="product-price">${esc(item.price||'')}</div></div>
-                        ${isAdmin?`<div class="product-actions">
-                            <button class="btn-mini oos" data-id="${item.id}" title="切换缺货">🚫</button>
-                            <button class="btn-mini edit" data-id="${item.id}" title="编辑">✎</button>
-                        </div>`:''}
-                    </div>
-                `).join('');
-                container.querySelectorAll('.product-row').forEach(row=>{
-                    row.addEventListener('click',e=>{
-                        if(e.target.closest('.btn-mini'))return;
-                        const item=appData.items.find(i=>i.id===row.dataset.id);
-                        if(item)alert(`${item.name}\n${item.price||''}\n${item.outOfStock?'⚠️缺货':'✅有货'}`);
-                    });
-                });
-                if(isAdmin){
-                    container.querySelectorAll('.btn-mini.edit').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const item=appData.items.find(i=>i.id===b.dataset.id);if(item)openEdit(item);}));
-                    container.querySelectorAll('.btn-mini.oos').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const item=appData.items.find(i=>i.id===b.dataset.id);if(item)toggleOOS(item);}));
-                }
-            }
-            async function toggleOOS(item){await updateItem(item.id,{outOfStock:!item.outOfStock});await fetchAll();renderAll();showToast(item.outOfStock?'已标记有货':'已标记缺货');}
-
-            function openEdit(item){
-                editingId=item.id;$('editId').value=item.id;
-                $('editName').value=item.name;$('editPrice').value=item.price||'';
-                $('editCategory').innerHTML='<option value="">选择分类</option>'+appData.categories.map(c=>`<option ${c===item.category?'selected':''}>${esc(c)}</option>`).join('');
-                $('editModal').style.display='flex';
-            }
-            $('editSave').addEventListener('click',async()=>{
-                const name=$('editName').value.trim(),price=$('editPrice').value.trim(),cat=$('editCategory').value;
-                if(!name||!price)return showToast('请填写名称和价格');
-                await updateItem(editingId,{name,price,category:cat});
-                await addAnn(`✏️ ${name} 已更新`);await fetchAll();renderAll();
-                $('editModal').style.display='none';showToast('✅ 已保存');
-            });
-            $('editDelete').addEventListener('click',async()=>{
-                if(!confirm('确定删除？'))return;
-                const item=appData.items.find(i=>i.id===editingId);
-                await delItem(editingId);await addAnn(`🗑️ 删除：${item.name}`);
-                await fetchAll();renderAll();$('editModal').style.display='none';showToast('已删除');
-            });
-            $('editCancel').addEventListener('click',()=>$('editModal').style.display='none');
-            $('editModal').addEventListener('click',e=>{if(e.target===$('editModal'))$('editModal').style.display='none';});
-
-            function updateBadge(){
-                const cnt=appData.items.filter(i=>i.outOfStock).length;
-                const badge=$('oosBadge');badge.textContent=cnt;badge.style.display=cnt?'inline-block':'none';
-            }
-            function updateHorn(){
-    const a=appData.announcements||[];
-    const latest=a.length?a[0].content:'暂无公告';
-    $('hornText').textContent=latest;
-    $('adminHornText').textContent=a.length?a.slice(0,10).map(x=>x.content).join('\n'):'暂无公告';
-}
-
-            async function renderAll(){
-                renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();
-                const uLabel=$('userLabel'),uBadge=$('userBadge');
-                uLabel.textContent=currentUser?.nickname||'未登录';
-                uBadge.className='user-info'+(currentUser?.role==='admin'?' admin':'');
-                $('navAdmin').style.display=currentUser?.role==='admin'?'flex':'none';
-            }
-
-            // 底部导航切换
-            document.querySelectorAll('.nav-item').forEach(item=>{
-                item.addEventListener('click',()=>{
-                    document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));
-                    item.classList.add('active');
-                    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
-                    $('page-'+item.dataset.page.split('-')[1]).classList.add('active');
-                });
-            });
-
-            // 管理页添加商品
-            $('adminImageBtn').addEventListener('click',()=>$('adminImageInput').click());
-            $('adminImageInput').addEventListener('change',function(){
-                const file=this.files[0];if(!file||!file.type.startsWith('image/'))return;
-                const reader=new FileReader();
-                reader.onload=e=>{
-                    const img=new Image();img.onload=()=>{
-                        const canvas=document.createElement('canvas');let w=img.width,h=img.height,max=800;
-                        if(w>max||h>max){if(w>h){h=h*max/w;w=max;}else{w=w*max/h;h=max;}}
-                        canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);
-                        const compressed=canvas.toDataURL('image/jpeg',0.7);
-                        window._adminImg=compressed;
-                        $('adminImagePreview').src=compressed;$('adminImagePreview').style.display='block';
-                    };img.src=e.target.result;
-                };reader.readAsDataURL(file);
-            });
-            $('adminAddBtn').addEventListener('click',async()=>{
-                if(currentUser?.role!=='admin')return showToast('仅管理员可操作');
-                const name=$('adminName').value.trim(),price=$('adminPrice').value.trim();
-                let cat=$('adminCategory').value;
-                const newCat=$('adminNewCategory').value.trim();
-                if(!name||!price)return showToast('请填写名称和价格');
-                if(newCat&&!appData.categories.includes(newCat)){await addCat(newCat);cat=newCat;}
-                await saveItem({name,price,category:cat,image:window._adminImg||''});
-                await addAnn(`🆕 新增：${name} ${price}`);
-                await fetchAll();renderAll();showToast('✅ 商品已添加');
-                $('adminName').value='';$('adminPrice').value='';$('adminCategory').value='';
-                $('adminNewCategory').value='';$('adminImagePreview').style.display='none';window._adminImg='';
-            });
-            $('adminLogoutBtn').addEventListener('click',()=>{
-    localStorage.removeItem(SESSION_KEY);
-    currentUser=null;
-    $('loginOverlay').style.display='flex';
-    $('loginAccount').value='';
-    $('loginPassword').value='';
-    $('loginError').textContent='';
-    showToast('已退出登录');
-});
-            // 填充分类下拉
-function fillCatSelects(){
-    const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
-    $('editCatSelect').innerHTML=html;
-    $('adminCategory').innerHTML='<option value="">选择分类</option>'+html;
-    $('editCategory').innerHTML='<option value="">选择分类</option>'+html;
-}
-
-// 修改分类名称
-$('editCatBtn').addEventListener('click',async()=>{
-    const oldName=$('editCatSelect').value;
-    const newName=$('editCatName').value.trim();
-    if(!oldName||!newName)return showToast('请选择分类并输入新名称');
-    if(appData.categories.includes(newName))return showToast('分类名已存在');
-    // 更新所有该分类的商品
-    const items=appData.items.filter(i=>i.category===oldName);
-    for(const item of items){await updateItem(item.id,{category:newName});}
-    // 删除旧分类，添加新分类
-    await supabase.from('categories').delete().eq('name',oldName);
-    await addCat(newName);
-    await addAnn(`🏷️ 分类改名：${oldName} → ${newName}`);
-    await fetchAll();renderAll();fillCatSelects();
-    $('editCatName').value='';showToast('✅ 分类已修改');
-});
-
-// 删除分类
-$('deleteCatBtn').addEventListener('click',async()=>{
-    const name=$('editCatSelect').value;
-    if(!name)return showToast('请选择分类');
-    if(!confirm(`确定删除分类「${name}」？该分类下的商品将变为未分类。`))return;
-    const items=appData.items.filter(i=>i.category===name);
-    for(const item of items){await updateItem(item.id,{category:''});}
-    await supabase.from('categories').delete().eq('name',name);
-    await addAnn(`🗑️ 删除分类：${name}`);
-    await fetchAll();renderAll();fillCatSelects();
-    showToast('✅ 分类已删除');
-});
-           
-
-            // 启动
-            $('searchInput').addEventListener('input', ()=>{ renderProductList(); });
-(async function(){
-    if(!localStorage.getItem(USERS_KEY))localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));
-    if(loginCheck()){
-        $('loginOverlay').style.display='none';
-        await initData();await fetchAll();renderAll();
-        setInterval(async()=>{if(currentUser){await fetchAll();renderAll();}},15000);
-    } else {
-        $('loginOverlay').style.display='flex';
+    async function fetchAll(){
+        const[a,b,c]=await Promise.all([
+            supabase.from('items').select('*').order('updated_at',{ascending:false}),
+            supabase.from('categories').select('*'),
+            supabase.from('announcements').select('*').order('created_at',{ascending:false}).limit(30)
+        ]);
+        if(a.error||b.error||c.error)return;
+        appData.items=a.data.map(i=>({id:i.id,name:i.name,price:i.price,category:i.category,image:i.image,outOfStock:i.out_of_stock}));
+        appData.categories=b.data.map(i=>i.name);
+        appData.announcements=c.data.map(i=>({content:i.content}));
     }
-})();
+    async function saveItem(it){await supabase.from('items').insert([{name:it.name,price:it.price,category:it.category||'',image:it.image||'',out_of_stock:false}]);}
+    async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});await supabase.from('items').update(f).eq('id',id);}
+    async function delItem(id){await supabase.from('items').delete().eq('id',id);}
+    async function addCat(name){await supabase.from('categories').insert([{name}]);}
+    async function addAnn(content){await supabase.from('announcements').insert([{content,type:'info'}]);}
+    async function initData(){const{c}=await supabase.from('items').select('*',{count:'exact',head:true});if(c===0){for(const n of['零食','饮料','日用品','调料','冷冻食品','酒类'])await addCat(n);
+        const its=[{name:'康师傅红烧牛肉面',price:'3.5元',category:'零食'},{name:'可口可乐330ml',price:'3元',category:'饮料'},{name:'海天酱油500ml',price:'12.5元',category:'调料'},{name:'心相印抽纸',price:'6.9元',category:'日用品'},{name:'三全水饺500g',price:'15.8元',category:'冷冻食品',outOfStock:true},{name:'青岛啤酒330ml',price:'5元',category:'酒类'}];
+        for(const it of its)await saveItem(it);await addAnn('🆕 系统初始化完成');}}
 
-$('loginBtn').addEventListener('click', async ()=>{
-    const acc=$('loginAccount').value.trim(),pwd=$('loginPassword').value.trim();
-    const u=getUsers()[acc];
-    if(!u||u.password!==pwd){$('loginError').textContent='账号或密码错误';return;}
-    currentUser={account:acc,role:u.role,nickname:u.nickname};
-    localStorage.setItem(SESSION_KEY,JSON.stringify(currentUser));
-    $('loginOverlay').style.display='none';
-    await initData();await fetchAll();renderAll();
-    setInterval(async()=>{if(currentUser){await fetchAll();renderAll();}},15000);
-});
-$('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click();});
-        })();
-    </script>
+    function renderSidebar(){
+        const sidebar=$('categorySidebar');
+        sidebar.innerHTML='<div class="cat-item active" data-cat="all">全部</div>'+appData.categories.map(c=>`<div class="cat-item" data-cat="${esc(c)}">${esc(c)}</div>`).join('');
+        sidebar.querySelectorAll('.cat-item').forEach(el=>el.addEventListener('click',()=>{
+            sidebar.querySelectorAll('.cat-item').forEach(e=>e.classList.remove('active'));
+            el.classList.add('active');activeCat=el.dataset.cat;renderProductList();
+        }));
+    }
+    function renderProductList(listId='productList', filterOos=false){
+        let items=appData.items.filter(i=>activeCat==='all'||i.category===activeCat);
+        if(filterOos)items=items.filter(i=>i.outOfStock);
+        const kw=$('searchInput')?.value?.toLowerCase();
+        if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
+        const container=$(listId);
+        const isAdmin=currentUser?.role==='admin';
+        if(!items.length){container.innerHTML='<p style="text-align:center;color:#999;padding:20px;">暂无商品</p>';return;}
+        container.innerHTML=items.map(item=>`
+            <div class="product-row ${item.outOfStock?'oos':''}" data-id="${item.id}">
+                <div class="product-img">${item.image?`<img src="${item.image}">`:'📷'}</div>
+                <div class="product-info"><div class="product-name">${esc(item.name)}</div><div class="product-price">${esc(item.price||'')}</div></div>
+                ${isAdmin?`<div class="product-actions"><button class="btn-mini oos" data-id="${item.id}">🚫</button><button class="btn-mini edit" data-id="${item.id}">✎</button></div>`:''}
+            </div>`).join('');
+        container.querySelectorAll('.product-row').forEach(row=>{
+            row.addEventListener('click',e=>{if(e.target.closest('.btn-mini'))return;const item=appData.items.find(i=>i.id===row.dataset.id);if(item)alert(`${item.name}\n${item.price||''}\n${item.outOfStock?'⚠️缺货':'✅有货'}`);});
+        });
+        if(isAdmin){
+            container.querySelectorAll('.btn-mini.edit').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const item=appData.items.find(i=>i.id===b.dataset.id);if(item)openEdit(item);}));
+            container.querySelectorAll('.btn-mini.oos').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const item=appData.items.find(i=>i.id===b.dataset.id);if(item)toggleOOS(item);}));
+        }
+    }
+    async function toggleOOS(item){await updateItem(item.id,{outOfStock:!item.outOfStock});await fetchAll();renderAll();showToast(item.outOfStock?'已标记有货':'已标记缺货');}
+    function openEdit(item){
+        editingId=item.id;$('editId').value=item.id;
+        $('editName').value=item.name;$('editPrice').value=item.price||'';
+        $('editCategory').innerHTML='<option value="">选择分类</option>'+appData.categories.map(c=>`<option ${c===item.category?'selected':''}>${esc(c)}</option>`).join('');
+        $('editModal').style.display='flex';
+    }
+    $('editSave').addEventListener('click',async()=>{
+        const name=$('editName').value.trim(),price=$('editPrice').value.trim(),cat=$('editCategory').value;
+        if(!name||!price)return showToast('请填写名称和价格');
+        await updateItem(editingId,{name,price,category:cat});await addAnn(`✏️ ${name} 已更新`);await fetchAll();renderAll();
+        $('editModal').style.display='none';showToast('✅ 已保存');
+    });
+    $('editDelete').addEventListener('click',async()=>{
+        if(!confirm('确定删除？'))return;
+        const item=appData.items.find(i=>i.id===editingId);
+        await delItem(editingId);await addAnn(`🗑️ 删除：${item.name}`);await fetchAll();renderAll();
+        $('editModal').style.display='none';showToast('已删除');
+    });
+    $('editCancel').addEventListener('click',()=>$('editModal').style.display='none');
+    $('editModal').addEventListener('click',e=>{if(e.target===$('editModal'))$('editModal').style.display='none';});
+
+    function updateBadge(){const cnt=appData.items.filter(i=>i.outOfStock).length;const b=$('oosBadge');b.textContent=cnt;b.style.display=cnt?'inline-block':'none';}
+    function updateHorn(){const a=appData.announcements||[];$('hornText').textContent=a.length?a[0].content:'暂无公告';$('adminHornText').textContent=a.length?a.slice(0,10).map(x=>x.content).join('\n'):'暂无公告';}
+    function fillCatSelects(){const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('editCatSelect').innerHTML=html;$('adminCategory').innerHTML='<option value="">选择分类</option>'+html;$('editCategory').innerHTML='<option value="">选择分类</option>'+html;}
+
+    async function renderAll(){
+        renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();
+        const uLabel=$('userLabel'),uBadge=$('userBadge');
+        uLabel.textContent=currentUser?.nickname||'未登录';
+        uBadge.className='user-info'+(currentUser?.role==='admin'?' admin':'');
+        $('navAdmin').style.display=currentUser?.role==='admin'?'flex':'none';
+    }
+
+    document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));item.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('page-'+item.dataset.page.split('-')[1]).classList.add('active');});});
+
+    $('adminImageBtn').addEventListener('click',()=>$('adminImageInput').click());
+    $('adminImageInput').addEventListener('change',function(){
+        const file=this.files[0];if(!file||!file.type.startsWith('image/'))return;
+        const reader=new FileReader();reader.onload=e=>{const img=new Image();img.onload=()=>{const canvas=document.createElement('canvas');let w=img.width,h=img.height,max=800;if(w>max||h>max){if(w>h){h=h*max/w;w=max;}else{w=w*max/h;h=max;}}canvas.width=w;canvas.height=h;canvas.getContext('2d').drawImage(img,0,0,w,h);window._adminImg=canvas.toDataURL('image/jpeg',0.7);$('adminImagePreview').src=window._adminImg;$('adminImagePreview').style.display='block';};img.src=e.target.result;};reader.readAsDataURL(file);
+    });
+    $('adminAddBtn').addEventListener('click',async()=>{
+        if(currentUser?.role!=='admin')return showToast('仅管理员可操作');
+        const name=$('adminName').value.trim(),price=$('adminPrice').value.trim();let cat=$('adminCategory').value;const newCat=$('adminNewCategory').value.trim();
+        if(!name||!price)return showToast('请填写名称和价格');
+        if(newCat&&!appData.categories.includes(newCat)){await addCat(newCat);cat=newCat;}
+        await saveItem({name,price,category:cat,image:window._adminImg||''});await addAnn(`🆕 新增：${name} ${price}`);
+        await fetchAll();renderAll();showToast('✅ 商品已添加');
+        $('adminName').value='';$('adminPrice').value='';$('adminCategory').value='';$('adminNewCategory').value='';$('adminImagePreview').style.display='none';window._adminImg='';
+    });
+    $('adminLogoutBtn').addEventListener('click',()=>{localStorage.removeItem(SESSION_KEY);currentUser=null;$('loginOverlay').style.display='flex';$('loginAccount').value='';$('loginPassword').value='';$('loginError').textContent='';showToast('已退出登录');});
+    $('editCatBtn').addEventListener('click',async()=>{
+        const oldName=$('editCatSelect').value,newName=$('editCatName').value.trim();
+        if(!oldName||!newName)return showToast('请选择分类并输入新名称');
+        if(appData.categories.includes(newName))return showToast('分类名已存在');
+        const items=appData.items.filter(i=>i.category===oldName);for(const item of items){await updateItem(item.id,{category:newName});}
+        await supabase.from('categories').delete().eq('name',oldName);await addCat(newName);await addAnn(`🏷️ 分类改名：${oldName} → ${newName}`);
+        await fetchAll();renderAll();$('editCatName').value='';showToast('✅ 分类已修改');
+    });
+    $('deleteCatBtn').addEventListener('click',async()=>{
+        const name=$('editCatSelect').value;if(!name)return showToast('请选择分类');
+        if(!confirm(`确定删除分类「${name}」？`))return;
+        const items=appData.items.filter(i=>i.category===name);for(const item of items){await updateItem(item.id,{category:''});}
+        await supabase.from('categories').delete().eq('name',name);await addAnn(`🗑️ 删除分类：${name}`);
+        await fetchAll();renderAll();showToast('✅ 分类已删除');
+    });
+
+    // 副账号点击右上角退出
+    $('userBadge').addEventListener('click',()=>{
+        if(currentUser?.role==='admin')return;
+        if(confirm('确定退出登录吗？')){
+            localStorage.removeItem(SESSION_KEY);currentUser=null;
+            $('loginOverlay').style.display='flex';
+            $('loginAccount').value='';$('loginPassword').value='';$('loginError').textContent='';
+        }
+    });
+
+    $('searchInput').addEventListener('input',()=>{renderProductList();});
+    (async function(){
+        if(!localStorage.getItem(USERS_KEY))localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));
+        if(loginCheck()){$('loginOverlay').style.display='none';await initData();await fetchAll();renderAll();setInterval(async()=>{if(currentUser){await fetchAll();renderAll();}},15000);}
+        else{$('loginOverlay').style.display='flex';}
+    })();
+    $('loginBtn').addEventListener('click',async()=>{
+        const acc=$('loginAccount').value.trim(),pwd=$('loginPassword').value.trim();
+        const u=getUsers()[acc];if(!u||u.password!==pwd){$('loginError').textContent='账号或密码错误';return;}
+        currentUser={account:acc,role:u.role,nickname:u.nickname};localStorage.setItem(SESSION_KEY,JSON.stringify(currentUser));
+        $('loginOverlay').style.display='none';await initData();await fetchAll();renderAll();
+        setInterval(async()=>{if(currentUser){await fetchAll();renderAll();}},15000);
+    });
+    $('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click();});
+})();
+</script>
 </body>
 </html>
