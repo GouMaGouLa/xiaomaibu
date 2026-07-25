@@ -408,6 +408,7 @@ if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
             });
 
             // 启动
+            $('searchInput').addEventListener('input', ()=>{ renderProductList(); });
 (async function(){
     if(!localStorage.getItem(USERS_KEY))localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));
     if(loginCheck()){
