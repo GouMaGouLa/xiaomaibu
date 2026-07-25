@@ -207,6 +207,13 @@
                 <button class="admin-btn primary" id="adminAddBtn">➕ 添加商品</button>
             </div>
             <div class="admin-section">
+                <div class="admin-section">
+    <h4>🏷️ 修改分类名称</h4>
+    <select class="admin-input" id="editCatSelect"></select>
+    <input class="admin-input" type="text" id="editCatName" placeholder="新分类名称">
+    <button class="admin-btn primary" id="editCatBtn">✏️ 修改分类</button>
+    <button class="admin-btn danger" id="deleteCatBtn">🗑️ 删除分类</button>
+</div>
                 <h4>📢 最近公告</h4>
                 <div class="horn-text-admin" id="adminHornText">暂无公告</div>
             </div>
@@ -353,7 +360,7 @@ if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
             }
 
             async function renderAll(){
-                renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();
+                renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();
                 const uLabel=$('userLabel'),uBadge=$('userBadge');
                 uLabel.textContent=currentUser?.nickname||'未登录';
                 uBadge.className='user-info'+(currentUser?.role==='admin'?' admin':'');
@@ -407,6 +414,43 @@ if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
     $('loginPassword').value='';
     $('loginError').textContent='';
     showToast('已退出登录');
+});
+            // 填充分类下拉
+function fillCatSelects(){
+    const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');
+    $('editCatSelect').innerHTML=html;
+    $('adminCategory').innerHTML='<option value="">选择分类</option>'+html;
+    $('editCategory').innerHTML='<option value="">选择分类</option>'+html;
+}
+
+// 修改分类名称
+$('editCatBtn').addEventListener('click',async()=>{
+    const oldName=$('editCatSelect').value;
+    const newName=$('editCatName').value.trim();
+    if(!oldName||!newName)return showToast('请选择分类并输入新名称');
+    if(appData.categories.includes(newName))return showToast('分类名已存在');
+    // 更新所有该分类的商品
+    const items=appData.items.filter(i=>i.category===oldName);
+    for(const item of items){await updateItem(item.id,{category:newName});}
+    // 删除旧分类，添加新分类
+    await supabase.from('categories').delete().eq('name',oldName);
+    await addCat(newName);
+    await addAnn(`🏷️ 分类改名：${oldName} → ${newName}`);
+    await fetchAll();renderAll();fillCatSelects();
+    $('editCatName').value='';showToast('✅ 分类已修改');
+});
+
+// 删除分类
+$('deleteCatBtn').addEventListener('click',async()=>{
+    const name=$('editCatSelect').value;
+    if(!name)return showToast('请选择分类');
+    if(!confirm(`确定删除分类「${name}」？该分类下的商品将变为未分类。`))return;
+    const items=appData.items.filter(i=>i.category===name);
+    for(const item of items){await updateItem(item.id,{category:''});}
+    await supabase.from('categories').delete().eq('name',name);
+    await addAnn(`🗑️ 删除分类：${name}`);
+    await fetchAll();renderAll();fillCatSelects();
+    showToast('✅ 分类已删除');
 });
 
             // 启动
