@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>小卖部价格本</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <style>
+        :root {
+            --primary: #ff6b35; --danger: #e74c3c; --bg: #f8f9fa; --card: #ffffff;
+            --text: #2d3436; --border: #e9ecef; --horn-bg: #fff3cd;
+            --horn-text: #856404; --horn-border: #ffc107; --outofstock-bg: #ffe0e0;
+            --outofstock-text: #b52b2b; --outofstock-border: #e74c3c;
+            --shadow: 0 2px 12px rgba(0,0,0,0.08); --radius: 12px; --radius-sm: 8px;
+            --nav-height: 56px; --tab-height: 48px; --horn-height: 44px;
+            --safe-bottom: env(safe-area-inset-bottom, 16px);
+        }
+        * { margin:0; padding:0; box-sizing:border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'PingFang SC', 'Microsoft YaHei', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; padding-bottom: calc(var(--safe-bottom) + 80px); -webkit-tap-highlight-color: transparent; }
+        .nav-bar { position:sticky; top:0; z-index:100; background:var(--primary); color:#fff; height:var(--nav-height); display:flex; align-items:center; justify-content:space-between; padding:0 16px; box-shadow:0 2px 8px rgba(255,107,53,0.3); }
+        .nav-bar .logo { font-size:18px; font-weight:700; display:flex; align-items:center; gap:8px; }
+        .nav-bar .user-badge { background:rgba(255,255,255,0.2); padding:6px 12px; border-radius:20px; font-size:13px; display:flex; align-items:center; gap:6px; cursor:pointer; }
+        .nav-bar .user-badge.admin-badge { background:rgba(255,255,255,0.25); }
+        .nav-bar .user-badge .dot { width:8px; height:8px; border-radius:50%; background:#4eff4e; }
+        .nav-bar .user-badge.admin-badge .dot { background:#ffd700; box-shadow:0 0 6px #ffd700; }
+        .horn-bar { position:sticky; top:var(--nav-height); z-index:99; background:var(--horn-bg); border-bottom:2px solid var(--horn-border); height:var(--horn-height); display:flex; align-items:center; padding:0 12px; gap:8px; overflow:hidden; }
+        .horn-bar .horn-icon { font-size:18px; flex-shrink:0; animation:hornPulse 1.5s infinite; }
+        @keyframes hornPulse { 0%,100%{transform:scale(1)} 50%{transform:scale(1.25)} }
+        .horn-bar .horn-scroll { flex:1; overflow:hidden; height:100%; display:flex; align-items:center; }
+        .horn-bar .horn-text { white-space:nowrap; font-size:13px; color:var(--horn-text); font-weight:500; animation:marquee 14s linear infinite; padding-left:100%; }
+        @keyframes marquee { 0%{transform:translateX(0)} 100%{transform:translateX(-100%)} }
+        .horn-bar .horn-close { flex-shrink:0; width:24px; height:24px; border-radius:50%; border:none; background:rgba(0,0,0,0.08); cursor:pointer; font-size:12px; color:#856404; }
+        .outofstock-bar { position:sticky; top:calc(var(--nav-height) + var(--horn-height)); z-index:98; background:var(--outofstock-bg); border-bottom:2px solid var(--outofstock-border); padding:8px 12px; display:flex; align-items:center; gap:8px; min-height:40px; }
+        .outofstock-bar .oos-icon { font-size:16px; flex-shrink:0; }
+        .outofstock-bar .oos-text { flex:1; font-size:13px; color:var(--outofstock-text); font-weight:500; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+        .category-tabs { position:sticky; top:calc(var(--nav-height) + var(--horn-height) + 40px); z-index:97; background:#fff; border-bottom:1px solid var(--border); display:flex; overflow-x:auto; gap:4px; padding:6px 10px; height:var(--tab-height); scrollbar-width:none; }
+        .category-tabs::-webkit-scrollbar { display:none; }
+        .category-tab { flex-shrink:0; padding:7px 16px; border-radius:20px; border:1.5px solid var(--border); background:#fff; font-size:13px; cursor:pointer; white-space:nowrap; }
+        .category-tab.active { background:var(--primary); color:#fff; border-color:var(--primary); font-weight:600; }
+        .search-bar { position:sticky; top:calc(var(--nav-height) + var(--horn-height) + 40px + var(--tab-height)); z-index:96; background:#fff; padding:8px 12px; border-bottom:1px solid var(--border); }
+        .search-bar input { width:100%; padding:10px 14px; border:1.5px solid var(--border); border-radius:20px; font-size:14px; outline:none; background:#fafafa; }
+        .search-bar input:focus { border-color:var(--primary); background:#fff; }
+        .items-container { padding:12px; display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+        .item-card { background:var(--card); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); cursor:pointer; position:relative; border:1px solid transparent; transition:opacity 0.3s; }
+        .item-card.out-of-stock { opacity:0.65; }
+        .item-card .img-wrap { width:100%; aspect-ratio:1/1; background:#f0f0f0; display:flex; align-items:center; justify-content:center; overflow:hidden; position:relative; }
+        .item-card .img-wrap img { width:100%; height:100%; object-fit:cover; }
+        .item-card .img-wrap .placeholder { font-size:48px; color:#ccc; }
+        .item-card .outofstock-overlay { position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.7); display:flex; align-items:center; justify-content:center; font-size:28px; font-weight:700; color:var(--danger); pointer-events:none; }
+        .item-card .info { padding:10px 12px; }
+        .item-card .name { font-weight:600; font-size:14px; margin-bottom:4px; word-break:break-word; }
+        .item-card .price { font-size:16px; font-weight:700; color:var(--danger); word-break:break-word; }
+        .item-card .category-tag { position:absolute; top:8px; left:8px; background:rgba(0,0,0,0.6); color:#fff; font-size:10px; padding:3px 8px; border-radius:10px; }
+        .item-card .admin-actions { position:absolute; top:8px; right:6px; display:flex; flex-direction:column; gap:4px; opacity:0; transition:opacity 0.2s; }
+        .item-card:hover .admin-actions, .item-card:active .admin-actions { opacity:1; }
+        .item-card .admin-btn { width:30px; height:30px; border-radius:50%; border:none; cursor:pointer; font-size:14px; background:rgba(255,255,255,0.9); box-shadow:0 1px 4px rgba(0,0,0,0.2); }
+        .item-card .admin-btn.del { color:#e74c3c; } .item-card .admin-btn.edit { color:#2980b9; } .item-card .admin-btn.oos { color:#e67e22; font-weight:bold; }
+        .empty-state { grid-column:1/-1; text-align:center; padding:60px 20px; color:#aaa; }
+        .fab-add { position:fixed; bottom:20px; right:20px; width:56px; height:56px; border-radius:50%; background:var(--primary); color:#fff; border:none; font-size:28px; box-shadow:0 6px 20px rgba(255,107,53,0.45); z-index:90; }
+        .fab-add.hidden { display:none; }
+        .modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:200; display:flex; align-items:flex-end; justify-content:center; }
+        .modal-sheet { background:#fff; width:100%; max-width:500px; max-height:85vh; border-radius:20px 20px 0 0; padding:20px 16px; overflow-y:auto; }
+        .modal-sheet h3 { font-size:18px; margin-bottom:16px; text-align:center; }
+        .modal-sheet .form-group { margin-bottom:14px; }
+        .modal-sheet label { display:block; font-size:13px; font-weight:600; margin-bottom:5px; color:#666; }
+        .modal-sheet input, .modal-sheet select { width:100%; padding:11px 14px; border:1.5px solid var(--border); border-radius:var(--radius-sm); font-size:15px; outline:none; background:#fafafa; }
+        .modal-sheet input:focus, .modal-sheet select:focus { border-color:var(--primary); background:#fff; }
+        .modal-sheet .img-preview { width:100%; max-height:200px; object-fit:contain; border-radius:var(--radius-sm); margin-top:8px; }
+        .modal-sheet .img-upload-btn { display:inline-block; padding:10px 18px; background:#f0f0f0; border-radius:var(--radius-sm); border:1.5px dashed #ccc; cursor:pointer; font-size:14px; color:#666; }
+        .modal-sheet .btn-row { display:flex; gap:10px; margin-top:18px; }
+        .modal-sheet .btn { flex:1; padding:12px; border-radius:var(--radius-sm); font-size:15px; font-weight:600; cursor:pointer; border:none; }
+        .modal-sheet .btn-primary { background:var(--primary); color:#fff; }
+        .modal-sheet .btn-danger { background:#fff; color:var(--danger); border:1.5px solid var(--danger); }
+        .modal-sheet .btn-cancel { background:#f0f0f0; color:#666; }
+        .login-container { min-height:100vh; display:flex; align-items:center; justify-content:center; background:linear-gradient(135deg,#ff9a56,#ff6b35,#e55a2b); padding:20px; }
+        .login-card { background:#fff; border-radius:20px; padding:32px 24px; width:100%; max-width:360px; box-shadow:0 20px 50px rgba(0,0,0,0.25); text-align:center; }
+        .login-card input { width:100%; padding:13px 16px; border:2px solid #e9ecef; border-radius:12px; font-size:16px; margin-bottom:12px; outline:none; text-align:center; }
+        .login-card .login-btn { width:100%; padding:13px; background:var(--primary); color:#fff; border:none; border-radius:12px; font-size:16px; font-weight:600; margin-top:8px; }
+        .toast { position:fixed; top:20px; left:50%; transform:translateX(-50%); background:#333; color:#fff; padding:10px 22px; border-radius:20px; font-size:14px; z-index:999; }
+    </style>
+</head>
+<body>
+    <div id="loginPage" class="login-container">
+        <div class="login-card">
+            <div class="login-icon">🏪</div>
+            <h2>小卖部价格本</h2>
+            <p>云同步 · 缺货提醒 · 模糊搜索</p>
+            <input type="text" id="loginAccount" placeholder="账号">
+            <input type="password" id="loginPassword" placeholder="密码">
+            <div id="loginError" style="color:red;min-height:20px;"></div>
+            <button class="login-btn" id="loginBtn">🔑 登录</button>
+            <p style="font-size:11px;color:#bbb;margin-top:16px;">👤 000 / 000 (管理)<br>👥 111 / 111 | 222 / 222</p>
+        </div>
+    </div>
+
+    <div id="mainPage" style="display:none;">
+        <div class="nav-bar">
+            <div class="logo"><span class="icon">🏪</span>小卖部价格本</div>
+            <div class="user-badge" id="userBadge"><span class="dot"></span><span id="userLabel">用户</span></div>
+        </div>
+        <div class="horn-bar" id="hornBar"><span class="horn-icon">📢</span><div class="horn-scroll"><span class="horn-text" id="hornText">暂无公告</span></div><button class="horn-close" id="hornClose">✕</button></div>
+        <div class="outofstock-bar" id="outofstockBar" style="display:none;"><span class="oos-icon">⚠️</span><span class="oos-text" id="oosText">暂无缺货</span></div>
+        <div class="category-tabs" id="categoryTabs"></div>
+        <div class="search-bar"><input type="text" id="searchInput" placeholder="🔍 搜索商品..."></div>
+        <div class="items-container" id="itemsContainer"></div>
+        <button class="fab-add hidden" id="fabAdd">＋</button>
+    </div>
+
+    <div class="modal-overlay" id="itemModal" style="display:none;">
+        <div class="modal-sheet">
+            <h3 id="modalTitle">添加商品</h3>
+            <div class="form-group"><label>📷 图片</label><input type="file" accept="image/*" id="imageInput" style="display:none;"><button class="img-upload-btn" id="imgUploadBtn">📁 选择图片</button><img class="img-preview" id="imgPreview" style="display:none;"><input type="hidden" id="imgDataUrl"></div>
+            <div class="form-group"><label>📝 名称 *</label><input type="text" id="itemName" placeholder="商品名"></div>
+            <div class="form-group"><label>💰 价格（任意文字）*</label><input type="text" id="itemPrice" placeholder="如：3.5元"></div>
+            <div class="form-group"><label>📂 分类</label><select id="itemCategory"><option value="">未分类</option></select><div style="display:flex;gap:8px;margin-top:6px;"><input type="text" id="newCategoryInput" placeholder="新分类名" style="flex:1;font-size:13px;padding:8px;"><button id="addCategoryBtn" style="padding:8px 14px;background:#27ae60;color:#fff;border:none;border-radius:6px;">+ 添加</button></div></div>
+            <div class="btn-row"><button class="btn btn-cancel" id="modalCancel">取消</button><button class="btn btn-primary" id="modalSave">💾 保存</button></div>
+            <div class="btn-row" id="modalDeleteRow" style="display:none;"><button class="btn btn-danger" id="modalDelete">🗑️ 删除</button></div>
+            <input type="hidden" id="editingItemId">
+        </div>
+    </div>
+    <div class="toast" id="toast" style="display:none;"></div>
+
+    <script>
+        (function() {
+            const SUPABASE_URL = 'https://kmajgywqhdvxbmxhuqxa.supabase.co';
+            const SUPABASE_ANON_KEY = 'sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW';
+            const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+            const USERS_KEY = 'xmb_users', SESSION_KEY = 'xmb_session', HORN_KEY = 'xmb_horn';
+            const DEFAULT_USERS = { '000':{password:'000',role:'admin',nickname:'管理员'}, '111':{password:'111',role:'viewer',nickname:'店员小王'}, '222':{password:'222',role:'viewer',nickname:'店员小李'} };
+            let appData = { items:[], categories:[], announcements:[] }, currentUser = null, currentCategory = 'all', editingItemId = null, hornHidden = localStorage.getItem(HORN_KEY)==='true', searchKeyword = '';
+
+            const $ = id => document.getElementById(id);
+            const $loginPage = $('loginPage'), $mainPage = $('mainPage'), $loginError = $('loginError'), $userLabel = $('userLabel'), $hornText = $('hornText'), $categoryTabs = $('categoryTabs'), $itemsContainer = $('itemsContainer'), $searchInput = $('searchInput'), $fabAdd = $('fabAdd'), $outofstockBar = $('outofstockBar'), $oosText = $('oosText'), $itemModal = $('itemModal'), $modalTitle = $('modalTitle'), $itemName = $('itemName'), $itemPrice = $('itemPrice'), $itemCategory = $('itemCategory'), $newCategoryInput = $('newCategoryInput'), $editingItemId = $('editingItemId'), $toast = $('toast');
+
+            function showToast(msg) { $toast.textContent = msg; $toast.style.display = 'block'; clearTimeout(window._t); window._t = setTimeout(() => $toast.style.display = 'none', 1800); }
+            function escapeHtml(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+            function getUsers() { let u = localStorage.getItem(USERS_KEY); if(u) return JSON.parse(u); localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS)); return DEFAULT_USERS; }
+
+            async function fetchAllData() {
+                const [a,b,c] = await Promise.all([
+                    supabase.from('items').select('*').order('updated_at',{ascending:false}),
+                    supabase.from('categories').select('*'),
+                    supabase.from('announcements').select('*').order('created_at',{ascending:false}).limit(50)
+                ]);
+                if(a.error || b.error || c.error) return showToast('数据加载失败');
+                appData.items = a.data.map(i=>({id:i.id,name:i.name,price:i.price,category:i.category,image:i.image,outOfStock:i.out_of_stock,createdAt:new Date(i.created_at).getTime(),updatedAt:new Date(i.updated_at).getTime()}));
+                appData.categories = b.data.map(i=>i.name);
+                appData.announcements = c.data.map(i=>({id:i.id,content:i.content,time:new Date(i.created_at).getTime(),type:i.type}));
+            }
+
+            async function saveItem(item) { await supabase.from('items').insert([{name:item.name,price:item.price,category:item.category||'',image:item.image||'',out_of_stock:item.outOfStock||false}]); }
+            async function updateItem(id, data) {
+                const f = {}; ['name','price','category','image','out_of_stock'].forEach(k=>{if(data[k]!==undefined)f[k]=data[k];});
+                await supabase.from('items').update(f).eq('id',id);
+            }
+            async function deleteItem(id) { await supabase.from('items').delete().eq('id',id); }
+            async function addCategory(name) { await supabase.from('categories').insert([{name}]); }
+            async function addAnnouncement(content, type) { await supabase.from('announcements').insert([{content, type}]); }
+
+            async function initData() {
+                const { count } = await supabase.from('items').select('*',{count:'exact',head:true});
+                if(count===0) {
+                    for(const n of ['零食','饮料','日用品','调料','冷冻食品','酒类']) await addCategory(n);
+                    const items = [
+                        {name:'康师傅红烧牛肉面',price:'3.5元',category:'零食',image:'',outOfStock:false},
+                        {name:'可口可乐330ml',price:'3元',category:'饮料',image:'',outOfStock:false},
+                        {name:'海天酱油500ml',price:'12.5元',category:'调料',image:'',outOfStock:false},
+                        {name:'心相印抽纸',price:'6.9元',category:'日用品',image:'',outOfStock:false},
+                        {name:'三全水饺500g',price:'15.8元',category:'冷冻食品',image:'',outOfStock:true},
+                        {name:'青岛啤酒330ml',price:'5元',category:'酒类',image:'',outOfStock:false}
+                    ];
+                    for(const item of items) await saveItem(item);
+                    await addAnnouncement('🆕 系统初始化完成','system');
+                }
+            }
+
+            async function toggleOOS(id, cur) { await updateItem(id,{outOfStock:!cur}); await fetchAllData(); renderAll(); showToast(cur?'已标记有货':'已标记缺货'); }
+
+            function updateUI() {
+                if(!currentUser) return;
+                $userLabel.textContent = currentUser.nickname;
+                $('userBadge').className = currentUser.role==='admin'?'user-badge admin-badge':'user-badge';
+                $fabAdd.classList.toggle('hidden', currentUser.role!=='admin');
+            }
+            function updateHorn() {
+                const a = appData.announcements||[];
+                $hornText.textContent = a.length ? a.slice(0,5).map(x=>{const d=new Date(x.time); return `【${d.getMonth()+1}/${d.getDate()}】${x.content}`;}).join('  |  ') : '暂无公告';
+                $('hornBar').style.display = hornHidden?'none':'flex';
+            }
+            function updateOOS() {
+                const oos = (appData.items||[]).filter(i=>i.outOfStock);
+                $outofstockBar.style.display = oos.length?'flex':'none';
+                $oosText.textContent = oos.length ? `缺货：${oos.map(i=>i.name).join('、')}` : '';
+            }
+            function renderCats() {
+                $categoryTabs.innerHTML = '<button class="category-tab active" data-category="all">🛒 全部</button>'+appData.categories.map(c=>`<button class="category-tab">${escapeHtml(c)}</button>`).join('');
+                $categoryTabs.querySelectorAll('.category-tab').forEach(t=>t.addEventListener('click',()=>{
+                    $categoryTabs.querySelectorAll('.category-tab').forEach(x=>x.classList.remove('active'));
+                    t.classList.add('active'); currentCategory = t.dataset.category||t.textContent; renderItems();
+                }));
+                $itemCategory.innerHTML = '<option value="">未分类</option>'+appData.categories.map(c=>`<option>${escapeHtml(c)}</option>`).join('');
+            }
+            function renderItems() {
+                let items = (appData.items||[]).filter(i=>currentCategory==='all'||i.category===currentCategory);
+                if(searchKeyword.trim()) items = items.filter(i=>i.name.toLowerCase().includes(searchKeyword.trim().toLowerCase()));
+                if(!items.length) return $itemsContainer.innerHTML = '<div class="empty-state"><span class="empty-icon">📦</span><p>暂无商品</p></div>';
+                const isAdmin = currentUser?.role==='admin';
+                $itemsContainer.innerHTML = items.map(item=>{
+                    const img = item.image?`<img src="${item.image}">`:'<span class="placeholder">📷</span>';
+                    const catTag = item.category?`<span class="category-tag">${escapeHtml(item.category)}</span>`:'';
+                    const oosOverlay = item.outOfStock?'<div class="outofstock-overlay">🚫 缺货</div>':'';
+                    const btns = isAdmin?`<div class="admin-actions"><button class="admin-btn oos" data-id="${item.id}">🚫</button><button class="admin-btn edit" data-id="${item.id}">✎</button><button class="admin-btn del" data-id="${item.id}">✕</button></div>`:'';
+                    return `<div class="item-card ${item.outOfStock?'out-of-stock':''}" data-id="${item.id}"><div class="img-wrap">${img}${oosOverlay}${catTag}${btns}</div><div class="info"><div class="name">${escapeHtml(item.name)}</div><div class="price">${escapeHtml(item.price||'')}</div></div></div>`;
+                }).join('');
+
+                $itemsContainer.querySelectorAll('.item-card').forEach(c=>c.addEventListener('click', e=>{
+                    if(e.target.closest('.admin-btn')) return;
+                    const item = appData.items.find(i=>i.id===c.dataset.id); if(item) showDetail(item);
+                }));
+                if(isAdmin) {
+                    $itemsContainer.querySelectorAll('.admin-btn.oos').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation(); const item=appData.items.find(i=>i.id===b.dataset.id); if(item) toggleOOS(item.id, item.outOfStock); }));
+                    $itemsContainer.querySelectorAll('.admin-btn.edit').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation(); const item=appData.items.find(i=>i.id===b.dataset.id); if(item) openEdit(item); }));
+                    $itemsContainer.querySelectorAll('.admin-btn.del').forEach(b=>b.addEventListener('click', e=>{ e.stopPropagation(); const item=appData.items.find(i=>i.id===b.dataset.id); if(item&&confirm(`删除「${item.name}」？`)) delItem(item.id); }));
+                }
+            }
+            function showDetail(item) {
+                const d = document.createElement('div'); d.className='modal-overlay';
+                d.innerHTML = `<div class="modal-sheet" style="text-align:center">${item.image?`<img src="${item.image}" style="max-width:100%;max-height:250px;">`:'<div style="font-size:60px;">📷</div>'}<h2>${escapeHtml(item.name)}</h2><p style="font-size:24px;color:#e74c3c;">${escapeHtml(item.price||'')}</p>${item.category?`<p>📂 ${escapeHtml(item.category)}</p>`:''}${item.outOfStock?'<p style="color:red">⚠️ 缺货</p>':'<p style="color:green">✅ 有货</p>'}<button class="btn btn-primary" style="margin-top:16px;width:100%">关闭</button></div>`;
+                document.body.appendChild(d);
+                d.addEventListener('click', e=>{ if(e.target===d||e.target.tagName==='BUTTON') d.remove(); });
+            }
+            function openAdd() {
+                if(currentUser.role!=='admin') return showToast('仅管理员');
+                editingItemId = null; $editingItemId.value = ''; $modalTitle.textContent = '➕ 添加商品';
+                $itemName.value = ''; $itemPrice.value = ''; $itemCategory.value = '';
+                $('imgDataUrl').value = ''; $('imgPreview').style.display = 'none'; $('modalDeleteRow').style.display = 'none';
+                renderCats(); $itemModal.style.display = 'flex';
+            }
+            function openEdit(item) {
+                editingItemId = item.id; $editingItemId.value = item.id; $modalTitle.textContent = '✏️ 编辑商品';
+                $itemName.value = item.name; $itemPrice.value = item.price||''; $itemCategory.value = item.category||'';
+                $('imgDataUrl').value = item.image||''; $('imgPreview').style.display = item.image?'block':'none';
+                if(item.image) $('imgPreview').src = item.image;
+                $('modalDeleteRow').style.display = 'flex'; renderCats(); $itemModal.style.display = 'flex';
+            }
+            async function saveItemAction() {
+                if(currentUser.role!=='admin') return;
+                const name = $itemName.value.trim(), price = $itemPrice.value.trim(), category = $itemCategory.value, image = $('imgDataUrl').value;
+                if(!name) return showToast('请输入名称'); if(!price) return showToast('请输入价格');
+                if(editingItemId) { await updateItem(editingItemId,{name,price,category,image}); await addAnnouncement(`✏️ ${name} 已更新`,'update'); }
+                else { await saveItem({name,price,category,image,outOfStock:false}); await addAnnouncement(`🆕 新增：${name} ${price}`,'add'); }
+                $itemModal.style.display = 'none'; await fetchAllData(); renderAll(); showToast('✅ 保存成功');
+            }
+            async function delItem(id) {
+                const item = appData.items.find(i=>i.id===id); if(!item) return;
+                await deleteItem(id); await addAnnouncement(`🗑️ 删除：${item.name}`,'delete');
+                $itemModal.style.display = 'none'; await fetchAllData(); renderAll();
+            }
+
+            $('loginBtn').addEventListener('click', ()=>{
+                const acc = $('loginAccount').value.trim(), pwd = $('loginPassword').value.trim();
+                $loginError.textContent = '';
+                if(!acc||!pwd) return $loginError.textContent = '请输入账号密码';
+                const u = getUsers()[acc];
+                if(!u) return $loginError.textContent = '账号不存在';
+                if(u.password!==pwd) return $loginError.textContent = '密码错误';
+                currentUser = {account:acc, role:u.role, nickname:u.nickname};
+                localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+                $loginPage.style.display = 'none'; $mainPage.style.display = 'block';
+                initData().then(fetchAllData).then(renderAll).then(()=>updateUI());
+            });
+            $('userBadge').addEventListener('click', ()=>{ if(confirm('退出登录？')) { localStorage.removeItem(SESSION_KEY); currentUser=null; $mainPage.style.display='none'; $loginPage.style.display='flex'; } });
+            $('hornClose').addEventListener('click', ()=>{ hornHidden=true; $('hornBar').style.display='none'; localStorage.setItem(HORN_KEY,'true'); });
+            $('addCategoryBtn').addEventListener('click', async ()=>{
+                if(currentUser.role!=='admin') return showToast('仅管理员');
+                const name = $newCategoryInput.value.trim();
+                if(!name) return showToast('输入分类名'); if(appData.categories.includes(name)) return showToast('已存在');
+                await addCategory(name); await fetchAllData(); $itemCategory.value = name; $newCategoryInput.value = ''; renderCats();
+                await addAnnouncement(`📂 新增分类：${name}`,'category'); await fetchAllData(); updateHorn(); showToast('✅ 分类已添加');
+            });
+            $searchInput.addEventListener('input', ()=>{ searchKeyword = $searchInput.value; renderItems(); });
+            $('imgUploadBtn').addEventListener('click', ()=>$('imageInput').click());
+            $('imageInput').addEventListener('change', function(){
+                const file = this.files[0]; if(!file||!file.type.startsWith('image/')) return;
+                const reader = new FileReader();
+                reader.onload = e => {
+                    const img = new Image(); img.onload = () => {
+                        const canvas = document.createElement('canvas'); let w=img.width, h=img.height, max=800;
+                        if(w>max||h>max){ if(w>h){h=h*max/w;w=max;}else{w=w*max/h;h=max;} }
+                        canvas.width=w; canvas.height=h; canvas.getContext('2d').drawImage(img,0,0,w,h);
+                        const compressed = canvas.toDataURL('image/jpeg',0.7);
+                        $('imgDataUrl').value = compressed; $('imgPreview').src = compressed; $('imgPreview').style.display='block';
+                    }; img.src = e.target.result;
+                }; reader.readAsDataURL(file);
+            });
+            $('modalCancel').addEventListener('click', ()=>$itemModal.style.display='none');
+            $('modalSave').addEventListener('click', saveItemAction);
+            $('modalDelete').addEventListener('click', ()=>{ if($editingItemId.value&&confirm('确定删除吗？')) delItem($editingItemId.value); });
+            $itemModal.addEventListener('click', e=>{ if(e.target===$itemModal) $itemModal.style.display='none'; });
+            $fabAdd.addEventListener('click', openAdd);
+
+            async function renderAll() { await fetchAllData(); renderCats(); renderItems(); updateHorn(); updateOOS(); updateUI(); }
+            setInterval(async ()=>{ if(currentUser){ await fetchAllData(); renderItems(); updateOOS(); } }, 10000);
+
+            if(!localStorage.getItem(USERS_KEY)) localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS));
+            const session = JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
+            if(session) { const u = getUsers()[session.account]; if(u&&u.role===session.role){ currentUser=session; $loginPage.style.display='none'; $mainPage.style.display='block'; initData().then(fetchAllData).then(renderAll); } }
+        })();
+    </script>
+</body>
+</html>
