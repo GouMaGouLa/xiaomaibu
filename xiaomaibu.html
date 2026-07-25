@@ -258,8 +258,6 @@
 
             function getUsers(){let u=localStorage.getItem(USERS_KEY);if(u)return JSON.parse(u);localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));return DEFAULT_USERS;}
             function loginCheck(){
-    const s=JSON.parse(localStorage.getItem(SESSION_KEY)||'null');
-    if(s){const u=getUsers()[s.account];if(u&&u.role===s.role){currentUser=s;return true;}}
     return false;
 }
 
@@ -402,10 +400,11 @@ if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
                 $('adminNewCategory').value='';$('adminImagePreview').style.display='none';window._adminImg='';
             });
             $('adminLogoutBtn').addEventListener('click',()=>{
-                localStorage.removeItem(SESSION_KEY);currentUser=null;
-                if(!loginCheck()){alert('已退出');return;}
-                fetchAll().then(renderAll);
-            });
+    localStorage.removeItem(SESSION_KEY);
+    currentUser=null;
+    $('loginOverlay').style.display='flex';
+    showToast('已退出登录');
+});
 
             // 启动
             $('searchInput').addEventListener('input', ()=>{ renderProductList(); });
