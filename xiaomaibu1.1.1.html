@@ -186,489 +186,402 @@
     </div>
     <div class="toast" id="toast" style="display:none;"></div>
 
-    <script>
-        // ==================== 你的 Supabase 凭证（已填好）====================
-        const SUPABASE_URL = 'https://kmajgywqhdvxbmxhuqxa.supabase.co';
-        const SUPABASE_ANON_KEY = 'sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW';
-        const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-        // ====================================================================
+   <script>
+    const SUPABASE_URL = 'https://kmajgywqhdvxbmxhuqxa.supabase.co';
+    const SUPABASE_ANON_KEY = 'sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW';
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
-        // 本地用户管理
-        const USERS_KEY = 'xmb_users', SESSION_KEY = 'xmb_session', HORN_KEY = 'xmb_horn';
-        const DEFAULT_USERS = {
-            '000':{password:'000',role:'admin',nickname:'管理员'},
-            '111':{password:'111',role:'viewer',nickname:'店员小王'},
-            '222':{password:'222',role:'viewer',nickname:'店员小李'}
-        };
+    const USERS_KEY = 'xmb_users', SESSION_KEY = 'xmb_session', HORN_KEY = 'xmb_horn';
+    const DEFAULT_USERS = {
+        '000':{password:'000',role:'admin',nickname:'管理员'},
+        '111':{password:'111',role:'viewer',nickname:'店员小王'},
+        '222':{password:'222',role:'viewer',nickname:'店员小李'}
+    };
 
-        let appData = { items:[], categories:[], announcements:[] };
-        let currentUser = null, currentCategory = 'all', editingItemId = null;
-        let hornHidden = localStorage.getItem(HORN_KEY)==='true';
-        let searchKeyword = '';
+    let appData = { items:[], categories:[], announcements:[] };
+    let currentUser = null, currentCategory = 'all', editingItemId = null;
+    let hornHidden = localStorage.getItem(HORN_KEY)==='true';
+    let searchKeyword = '';
 
-        // ==================== Supabase 数据操作 ====================
-        async function fetchAllData() {
-            try {
-                const [itemsRes, catsRes, annsRes] = await Promise.all([
-                    supabase.from('items').select('*').order('updated_at', { ascending: false }),
-                    supabase.from('categories').select('*'),
-                    supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(50)
-                ]);
-                if (itemsRes.error) throw itemsRes.error;
-                if (catsRes.error) throw catsRes.error;
-                if (annsRes.error) throw annsRes.error;
+    async function fetchAllData() {
+        try {
+            const [itemsRes, catsRes, annsRes] = await Promise.all([
+                supabase.from('items').select('*').order('updated_at', { ascending: false }),
+                supabase.from('categories').select('*'),
+                supabase.from('announcements').select('*').order('created_at', { ascending: false }).limit(50)
+            ]);
+            if (itemsRes.error) throw itemsRes.error;
+            if (catsRes.error) throw catsRes.error;
+            if (annsRes.error) throw annsRes.error;
 
-                appData.items = itemsRes.data.map(i => ({
-                    id: i.id,
-                    name: i.name,
-                    price: i.price,
-                    category: i.category,
-                    image: i.image,
-                    outOfStock: i.out_of_stock,
-                    createdAt: new Date(i.created_at).getTime(),
-                    updatedAt: new Date(i.updated_at).getTime()
-                }));
-                appData.categories = catsRes.data.map(c => c.name);
-                appData.announcements = annsRes.data.map(a => ({
-                    id: a.id,
-                    content: a.content,
-                    time: new Date(a.created_at).getTime(),
-                    type: a.type
-                }));
-            } catch(e) { console.error('数据拉取失败', e); showToast('网络异常，请检查后台数据库是否已创建表'); }
-        }
+            appData.items = itemsRes.data.map(i => ({
+                id: i.id, name: i.name, price: i.price, category: i.category,
+                image: i.image, outOfStock: i.out_of_stock,
+                createdAt: new Date(i.created_at).getTime(), updatedAt: new Date(i.updated_at).getTime()
+            }));
+            appData.categories = catsRes.data.map(c => c.name);
+            appData.announcements = annsRes.data.map(a => ({
+                id: a.id, content: a.content, time: new Date(a.created_at).getTime(), type: a.type
+            }));
+        } catch(e) { console.error(e); showToast('数据加载失败'); }
+    }
 
-        async function saveItemToCloud(item) {
-            const { data, error } = await supabase.from('items').insert([{
-                name: item.name,
-                price: item.price,
-                category: item.category || '',
-                image: item.image || '',
-                out_of_stock: item.outOfStock || false
-            }]).select();
-            if (error) throw error;
-            return data[0];
-        }
+    async function saveItemToCloud(item) {
+        const { data, error } = await supabase.from('items').insert([{
+            name: item.name, price: item.price, category: item.category || '',
+            image: item.image || '', out_of_stock: item.outOfStock || false
+        }]).select();
+        if (error) throw error;
+        return data[0];
+    }
 
-        async function updateItemInCloud(id, updates) {
-            const fields = {};
-            if (updates.name !== undefined) fields.name = updates.name;
-            if (updates.price !== undefined) fields.price = updates.price;
-            if (updates.category !== undefined) fields.category = updates.category;
-            if (updates.image !== undefined) fields.image = updates.image;
-            if (updates.outOfStock !== undefined) fields.out_of_stock = updates.outOfStock;
-            const { error } = await supabase.from('items').update(fields).eq('id', id);
-            if (error) throw error;
-        }
-
-        async function deleteItemFromCloud(id) {
-            const { error } = await supabase.from('items').delete().eq('id', id);
-            if (error) throw error;
-        }
-
-        async function addCategoryToCloud(name) {
-            const { error } = await supabase.from('categories').insert([{ name }]);
-            if (error) throw error;
-        }
-
-        async function addAnnouncementToCloud(content, type) {
-            const { error } = await supabase.from('announcements').insert([{ content, type }]);
-            if (error) throw error;
-        }
-
-        async function initCloudData() {
-            const { count, error } = await supabase.from('items').select('*', { count: 'exact', head: true });
-            if (error) throw error;
-            if (count === 0) {
-                for (const name of ['零食','饮料','日用品','调料','冷冻食品','酒类']) {
-                    await addCategoryToCloud(name);
-                }
-                const defaultItems = [
-                    {name:'康师傅红烧牛肉面', price:'3.5元', category:'零食', image:'', outOfStock:false},
-                    {name:'可口可乐330ml', price:'3元', category:'饮料', image:'', outOfStock:false},
-                    {name:'海天酱油500ml', price:'12.5元', category:'调料', image:'', outOfStock:false},
-                    {name:'心相印抽纸', price:'6.9元', category:'日用品', image:'', outOfStock:false},
-                    {name:'三全水饺500g', price:'15.8元', category:'冷冻食品', image:'', outOfStock:true},
-                    {name:'青岛啤酒330ml', price:'5元', category:'酒类', image:'', outOfStock:false}
-                ];
-                for (const item of defaultItems) {
-                    await saveItemToCloud(item);
-                }
-                await addAnnouncementToCloud('🆕 系统初始化完成','system');
-            }
-        }
-
-        async function toggleOutOfStock(itemId, currentStatus) {
-            await updateItemInCloud(itemId, { outOfStock: !currentStatus });
-            await fetchAllData();
-            renderAll();
-            showToast(currentStatus ? '已标记为有货' : '已标记为缺货');
-        }
-
-        // ============ 工具函数 ============
-        function getUsers() {
-            let u = localStorage.getItem(USERS_KEY);
-            if (u) return JSON.parse(u);
-            localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS));
-            return DEFAULT_USERS;
-        }
-        function escapeHtml(str) {
-            const div = document.createElement('div');
-            div.textContent = str || '';
-            return div.innerHTML;
-        }
-
-        // ============ DOM 元素 ============
-        const $ = id => document.getElementById(id);
-        const $loginPage = $('loginPage'), $mainPage = $('mainPage');
-        const $loginError = $('loginError');
-        const $userLabel = $('userLabel'), $hornText = $('hornText');
-        const $categoryTabs = $('categoryTabs'), $itemsContainer = $('itemsContainer');
-        const $searchInput = $('searchInput');
-        const $fabAdd = $('fabAdd');
-        const $outofstockBar = $('outofstockBar'), $oosText = $('oosText');
-        const $itemModal = $('itemModal'), $modalTitle = $('modalTitle');
-        const $itemName = $('itemName'), $itemPrice = $('itemPrice');
-        const $itemCategory = $('itemCategory'), $newCategoryInput = $('newCategoryInput');
-        const $editingItemId = $('editingItemId');
-        const $toast = $('toast');
-
-        let toastTimer;
-        function showToast(msg) {
-            $toast.textContent = msg; $toast.style.display = 'block';
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => $toast.style.display = 'none', 1800);
-        }
-
-        // ============ 登录 ============
-        $('loginBtn').addEventListener('click', () => {
-            const account = $('loginAccount').value.trim(), pwd = $('loginPassword').value.trim();
-            $loginError.textContent = '';
-            if (!account || !pwd) return $loginError.textContent = '请输入账号密码';
-            const users = getUsers(), user = users[account];
-            if (!user) return $loginError.textContent = '账号不存在';
-            if (user.password !== pwd) return $loginError.textContent = '密码错误';
-            currentUser = { account, role:user.role, nickname:user.nickname };
-            localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
-            showMainPage();
+    async function updateItemInCloud(id, updates) {
+        const fields = {};
+        ['name','price','category','image','out_of_stock'].forEach(k => {
+            if (updates[k] !== undefined) fields[k] = updates[k];
         });
+        const { error } = await supabase.from('items').update(fields).eq('id', id);
+        if (error) throw error;
+    }
 
-        function handleLogout() {
-            if (confirm('退出登录？')) {
-                localStorage.removeItem(SESSION_KEY);
-                currentUser = null;
-                $mainPage.style.display = 'none';
-                $loginPage.style.display = 'flex';
-            }
+    async function deleteItemFromCloud(id) {
+        const { error } = await supabase.from('items').delete().eq('id', id);
+        if (error) throw error;
+    }
+
+    async function addCategoryToCloud(name) {
+        const { error } = await supabase.from('categories').insert([{ name }]);
+        if (error) throw error;
+    }
+
+    async function addAnnouncementToCloud(content, type) {
+        const { error } = await supabase.from('announcements').insert([{ content, type }]);
+        if (error) throw error;
+    }
+
+    async function initCloudData() {
+        const { count, error } = await supabase.from('items').select('*', { count: 'exact', head: true });
+        if (error) throw error;
+        if (count === 0) {
+            for (const name of ['零食','饮料','日用品','调料','冷冻食品','酒类']) await addCategoryToCloud(name);
+            const items = [
+                {name:'康师傅红烧牛肉面', price:'3.5元', category:'零食', image:'', outOfStock:false},
+                {name:'可口可乐330ml', price:'3元', category:'饮料', image:'', outOfStock:false},
+                {name:'海天酱油500ml', price:'12.5元', category:'调料', image:'', outOfStock:false},
+                {name:'心相印抽纸', price:'6.9元', category:'日用品', image:'', outOfStock:false},
+                {name:'三全水饺500g', price:'15.8元', category:'冷冻食品', image:'', outOfStock:true},
+                {name:'青岛啤酒330ml', price:'5元', category:'酒类', image:'', outOfStock:false}
+            ];
+            for (const item of items) await saveItemToCloud(item);
+            await addAnnouncementToCloud('🆕 系统初始化完成','system');
         }
-        $('userBadge').addEventListener('click', handleLogout);
+    }
 
-        async function showMainPage() {
-            $loginPage.style.display = 'none';
-            $mainPage.style.display = 'block';
-            await initCloudData();
-            await fetchAllData();
-            updateUserUI();
-            renderAll();
-        }
+    async function toggleOutOfStock(itemId, currentStatus) {
+        await updateItemInCloud(itemId, { outOfStock: !currentStatus });
+        await fetchAllData();
+        renderAll();
+        showToast(currentStatus ? '已标记为有货' : '已标记为缺货');
+    }
 
-        function updateUserUI() {
-            if (!currentUser) return;
-            $userLabel.textContent = currentUser.nickname;
-            const badge = $('userBadge');
-            badge.className = currentUser.role==='admin' ? 'user-badge admin-badge' : 'user-badge';
-            $fabAdd.classList.toggle('hidden', currentUser.role !== 'admin');
-        }
+    function getUsers() {
+        let u = localStorage.getItem(USERS_KEY);
+        if (u) return JSON.parse(u);
+        localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS));
+        return DEFAULT_USERS;
+    }
+    function escapeHtml(str) {
+        const div = document.createElement('div');
+        div.textContent = str || '';
+        return div.innerHTML;
+    }
 
-        // ============ 小喇叭 ============
-        function updateHornBar() {
-            const anns = appData.announcements || [];
-            $hornText.textContent = anns.length ? anns.slice(0,5).map(a => {
-                const d = new Date(a.time);
-                return `【${d.getMonth()+1}/${d.getDate()}】${a.content}`;
-            }).join(' | ') : '暂无公告';
-            $('hornBar').style.display = hornHidden ? 'none' : 'flex';
-        }
-        $('hornClose').addEventListener('click', () => {
-            hornHidden = true;
-            $('hornBar').style.display = 'none';
-            localStorage.setItem(HORN_KEY, 'true');
-        });
+    const $ = id => document.getElementById(id);
+    const $loginPage = $('loginPage'), $mainPage = $('mainPage'), $loginError = $('loginError');
+    const $userLabel = $('userLabel'), $hornText = $('hornText');
+    const $categoryTabs = $('categoryTabs'), $itemsContainer = $('itemsContainer');
+    const $searchInput = $('searchInput'), $fabAdd = $('fabAdd');
+    const $outofstockBar = $('outofstockBar'), $oosText = $('oosText');
+    const $itemModal = $('itemModal'), $modalTitle = $('modalTitle');
+    const $itemName = $('itemName'), $itemPrice = $('itemPrice');
+    const $itemCategory = $('itemCategory'), $newCategoryInput = $('newCategoryInput');
+    const $editingItemId = $('editingItemId'), $toast = $('toast');
 
-        // ============ 缺货栏 ============
-        function updateOutOfStockBar() {
-            const oosItems = appData.items.filter(i => i.outOfStock);
-            if (oosItems.length === 0) {
-                $outofstockBar.style.display = 'none';
-            } else {
-                $outofstockBar.style.display = 'flex';
-                const names = oosItems.map(i => i.name).join('、');
-                $oosText.textContent = `缺货：${names}`;
-                if (oosItems.length > 3 || names.length > 25) {
-                    $oosText.classList.add('marquee');
-                } else {
-                    $oosText.classList.remove('marquee');
-                }
-            }
-        }
+    let toastTimer;
+    function showToast(msg) {
+        $toast.textContent = msg; $toast.style.display = 'block';
+        clearTimeout(toastTimer);
+        toastTimer = setTimeout(() => $toast.style.display = 'none', 1800);
+    }
 
-        // ============ 分类 ============
-        function renderCategoryTabs() {
-            let html = '<button class="category-tab active" data-category="all">🛒 全部</button>';
-            appData.categories.forEach(c => html += `<button class="category-tab">${escapeHtml(c)}</button>`);
-            $categoryTabs.innerHTML = html;
-            $categoryTabs.querySelectorAll('.category-tab').forEach(tab => {
-                tab.addEventListener('click', () => {
-                    $categoryTabs.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
-                    tab.classList.add('active');
-                    currentCategory = tab.dataset.category || tab.textContent;
-                    renderItems();
-                });
-            });
-            updateCategorySelect();
-        }
+    $('loginBtn').addEventListener('click', () => {
+        const account = $('loginAccount').value.trim(), pwd = $('loginPassword').value.trim();
+        $loginError.textContent = '';
+        if (!account || !pwd) return $loginError.textContent = '请输入账号密码';
+        const users = getUsers(), user = users[account];
+        if (!user) return $loginError.textContent = '账号不存在';
+        if (user.password !== pwd) return $loginError.textContent = '密码错误';
+        currentUser = { account, role:user.role, nickname:user.nickname };
+        localStorage.setItem(SESSION_KEY, JSON.stringify(currentUser));
+        showMainPage();
+    });
 
-        function updateCategorySelect() {
-            $itemCategory.innerHTML = '<option value="">未分类</option>' +
-                appData.categories.map(c => `<option>${escapeHtml(c)}</option>`).join('');
-        }
-
-        $('addCategoryBtn').addEventListener('click', async () => {
-            if (currentUser.role !== 'admin') return showToast('仅管理员');
-            const name = $newCategoryInput.value.trim();
-            if (!name) return showToast('输入分类名');
-            if (appData.categories.includes(name)) return showToast('已存在');
-            await addCategoryToCloud(name);
-            await fetchAllData();
-            $itemCategory.value = name;
-            $newCategoryInput.value = '';
-            renderCategoryTabs();
-            await addAnnouncementToCloud(`📂 新增分类：${name}`, 'category');
-            await fetchAllData();
-            updateHornBar();
-            showToast('✅ 分类已添加');
-        });
-
-        // ============ 商品列表 & 搜索 ============
-        function getFilteredItems() {
-            let items = appData.items || [];
-            if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
-            if (searchKeyword.trim()) {
-                const kw = searchKeyword.trim().toLowerCase();
-                items = items.filter(i => i.name.toLowerCase().includes(kw));
-            }
-            return items;
-        }
-
-        function renderItems() {
-            const items = getFilteredItems();
-            if (!items.length) {
-                $itemsContainer.innerHTML = `<div class="empty-state"><span class="empty-icon">📦</span><p>${searchKeyword ? '没搜到相关商品' : '暂无商品'}</p></div>`;
-                return;
-            }
-            const isAdmin = currentUser?.role === 'admin';
-            let html = '';
-            items.forEach(item => {
-                const hasImg = item.image && item.image.trim();
-                const catTag = item.category ? `<span class="category-tag">${escapeHtml(item.category)}</span>` : '';
-                const oosOverlay = item.outOfStock ? '<div class="outofstock-overlay">🚫 缺货</div>' : '';
-                const adminBtns = isAdmin ? `
-                    <div class="admin-actions">
-                        <button class="admin-btn oos" data-id="${item.id}" title="切换缺货状态">🚫</button>
-                        <button class="admin-btn edit" data-id="${item.id}">✎</button>
-                        <button class="admin-btn del" data-id="${item.id}">✕</button>
-                    </div>` : '';
-                html += `
-                    <div class="item-card ${item.outOfStock ? 'out-of-stock' : ''}" data-id="${item.id}">
-                        <div class="img-wrap">
-                            ${hasImg ? `<img src="${item.image}" alt="${escapeHtml(item.name)}">` : '<span class="placeholder">📷</span>'}
-                            ${oosOverlay} ${catTag} ${adminBtns}
-                        </div>
-                        <div class="info">
-                            <div class="name">${escapeHtml(item.name)}</div>
-                            <div class="price">${escapeHtml(item.price || '')}</div>
-                        </div>
-                    </div>`;
-            });
-            $itemsContainer.innerHTML = html;
-
-            $itemsContainer.querySelectorAll('.item-card').forEach(card => {
-                card.addEventListener('click', e => {
-                    if (e.target.closest('.admin-btn')) return;
-                    const item = appData.items.find(i => i.id === card.dataset.id);
-                    if (item) showItemDetail(item);
-                });
-            });
-
-            if (isAdmin) {
-                $itemsContainer.querySelectorAll('.admin-btn.oos').forEach(btn => {
-                    btn.addEventListener('click', e => {
-                        e.stopPropagation();
-                        const item = appData.items.find(i => i.id === btn.dataset.id);
-                        if (item) toggleOutOfStock(item.id, item.outOfStock);
-                    });
-                });
-                $itemsContainer.querySelectorAll('.admin-btn.edit').forEach(btn => {
-                    btn.addEventListener('click', e => {
-                        e.stopPropagation();
-                        const item = appData.items.find(i => i.id === btn.dataset.id);
-                        if (item) openEditModal(item);
-                    });
-                });
-                $itemsContainer.querySelectorAll('.admin-btn.del').forEach(btn => {
-                    btn.addEventListener('click', e => {
-                        e.stopPropagation();
-                        const item = appData.items.find(i => i.id === btn.dataset.id);
-                        if (item && confirm(`删除「${item.name}」？`)) deleteItem(item.id);
-                    });
-                });
-            }
-        }
-
-        function showItemDetail(item) {
-            const overlay = document.createElement('div');
-            overlay.className = 'modal-overlay';
-            overlay.innerHTML = `
-                <div class="modal-sheet" style="text-align:center;">
-                    ${item.image ? `<img src="${item.image}" style="max-width:100%;max-height:250px;border-radius:8px;">` : '<div style="font-size:60px;">📷</div>'}
-                    <h2 style="margin:10px 0;">${escapeHtml(item.name)}</h2>
-                    <p style="font-size:24px;color:#e74c3c;font-weight:700;">${escapeHtml(item.price||'')}</p>
-                    ${item.category ? `<p style="color:#888;">📂 ${escapeHtml(item.category)}</p>` : ''}
-                    ${item.outOfStock ? '<p style="color:red;font-weight:bold;">⚠️ 当前缺货</p>' : '<p style="color:green;">✅ 有货</p>'}
-                    <button class="btn btn-primary" style="margin-top:16px;width:100%;">关闭</button>
-                </div>`;
-            document.body.appendChild(overlay);
-            overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName==='BUTTON') overlay.remove(); });
-        }
-
-        $searchInput.addEventListener('input', () => {
-            searchKeyword = $searchInput.value;
-            renderItems();
-        });
-
-        function openAddModal() {
-            if (currentUser.role !== 'admin') return showToast('仅管理员');
-            editingItemId = null; $editingItemId.value = '';
-            $modalTitle.textContent = '➕ 添加商品';
-            $itemName.value = ''; $itemPrice.value = ''; $itemCategory.value = '';
-            $('imgDataUrl').value = ''; $('imgPreview').style.display = 'none';
-            $('modalDeleteRow').style.display = 'none';
-            updateCategorySelect();
-            $itemModal.style.display = 'flex';
-        }
-
-        function openEditModal(item) {
-            editingItemId = item.id; $editingItemId.value = item.id;
-            $modalTitle.textContent = '✏️ 编辑商品';
-            $itemName.value = item.name;
-            $itemPrice.value = item.price || '';
-            $itemCategory.value = item.category || '';
-            $('imgDataUrl').value = item.image || '';
-            if (item.image) { $('imgPreview').src = item.image; $('imgPreview').style.display = 'block'; }
-            else $('imgPreview').style.display = 'none';
-            $('modalDeleteRow').style.display = 'flex';
-            updateCategorySelect();
-            $itemModal.style.display = 'flex';
-        }
-
-        function closeModal() { $itemModal.style.display = 'none'; }
-
-        async function saveItem() {
-            if (currentUser.role !== 'admin') return;
-            const name = $itemName.value.trim();
-            const price = $itemPrice.value.trim();
-            const category = $itemCategory.value;
-            const image = $('imgDataUrl').value;
-            if (!name) return showToast('请输入名称');
-            if (!price) return showToast('请输入价格');
-
-            const data = { name, price, category, image };
-            if (editingItemId) {
-                await updateItemInCloud(editingItemId, data);
-                await addAnnouncementToCloud(`✏️ ${name} 已更新`, 'update');
-            } else {
-                data.outOfStock = false;
-                await saveItemToCloud(data);
-                await addAnnouncementToCloud(`🆕 新增：${name} ${price}`, 'add');
-            }
-            closeModal();
-            await fetchAllData();
-            renderAll();
-            showToast('✅ 保存成功');
-        }
-
-        async function deleteItem(id) {
-            if (currentUser.role !== 'admin') return;
-            const item = appData.items.find(i => i.id === id);
-            if (!item) return;
-            await deleteItemFromCloud(id);
-            await addAnnouncementToCloud(`🗑️ 删除：${item.name}`, 'delete');
-            closeModal();
-            await fetchAllData();
-            renderAll();
-        }
-
-        $('imgUploadBtn').addEventListener('click', () => $('imageInput').click());
-        $('imageInput').addEventListener('change', function() {
-            const file = this.files[0];
-            if (!file || !file.type.startsWith('image/')) return;
-            const reader = new FileReader();
-            reader.onload = e => {
-                const img = new Image();
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    let w = img.width, h = img.height, max = 800;
-                    if (w > max || h > max) {
-                        if (w > h) { h = h * max / w; w = max; }
-                        else { w = w * max / h; h = max; }
-                    }
-                    canvas.width = w; canvas.height = h;
-                    canvas.getContext('2d').drawImage(img, 0, 0, w, h);
-                    const compressed = canvas.toDataURL('image/jpeg', 0.7);
-                    $('imgDataUrl').value = compressed;
-                    $('imgPreview').src = compressed;
-                    $('imgPreview').style.display = 'block';
-                };
-                img.src = e.target.result;
-            };
-            reader.readAsDataURL(file);
-        });
-
-        $('modalCancel').addEventListener('click', closeModal);
-        $('modalSave').addEventListener('click', saveItem);
-        $('modalDelete').addEventListener('click', () => {
-            if ($editingItemId.value && confirm('确定删除吗？')) deleteItem($editingItemId.value);
-        });
-        $itemModal.addEventListener('click', e => { if (e.target === $itemModal) closeModal(); });
-        $fabAdd.addEventListener('click', openAddModal);
-
-        async function renderAll() {
-            await fetchAllData();
-            renderCategoryTabs();
-            renderItems();
-            updateHornBar();
-            updateOutOfStockBar();
-            updateUserUI();
-        }
-
-        setInterval(async () => {
-            if (currentUser) { await fetchAllData(); renderItems(); updateOutOfStockBar(); }
-        }, 10000);
-
-        (async function() {
-            if (!localStorage.getItem(USERS_KEY)) localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS));
-            const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
-            if (session) {
-                const users = getUsers();
-                if (users[session.account] && users[session.account].role === session.role) {
-                    currentUser = session;
-                    await showMainPage();
-                    return;
-                }
-            }
-            $loginPage.style.display = 'flex';
+    function handleLogout() {
+        if (confirm('退出登录？')) {
+            localStorage.removeItem(SESSION_KEY);
+            currentUser = null;
             $mainPage.style.display = 'none';
-        })();
-    </script>
+            $loginPage.style.display = 'flex';
+        }
+    }
+    $('userBadge').addEventListener('click', handleLogout);
+
+    async function showMainPage() {
+        $loginPage.style.display = 'none'; $mainPage.style.display = 'block';
+        await initCloudData(); await fetchAllData();
+        updateUserUI(); renderAll();
+    }
+
+    function updateUserUI() {
+        if (!currentUser) return;
+        $userLabel.textContent = currentUser.nickname;
+        $('userBadge').className = currentUser.role==='admin' ? 'user-badge admin-badge' : 'user-badge';
+        $fabAdd.classList.toggle('hidden', currentUser.role !== 'admin');
+    }
+
+    function updateHornBar() {
+        const anns = appData.announcements || [];
+        $hornText.textContent = anns.length ? anns.slice(0,5).map(a => {
+            const d = new Date(a.time);
+            return `【${d.getMonth()+1}/${d.getDate()}】${a.content}`;
+        }).join('  |  ') : '暂无公告';
+        $('hornBar').style.display = hornHidden ? 'none' : 'flex';
+    }
+    $('hornClose').addEventListener('click', () => {
+        hornHidden = true; $('hornBar').style.display = 'none';
+        localStorage.setItem(HORN_KEY, 'true');
+    });
+
+    function updateOutOfStockBar() {
+        const oosItems = appData.items.filter(i => i.outOfStock);
+        if (!oosItems.length) {
+            $outofstockBar.style.display = 'none';
+        } else {
+            $outofstockBar.style.display = 'flex';
+            const names = oosItems.map(i => i.name).join('、');
+            $oosText.textContent = `缺货：${names}`;
+            $oosText.classList.toggle('marquee', oosItems.length > 3 || names.length > 25);
+        }
+    }
+
+    function renderCategoryTabs() {
+        let html = '<button class="category-tab active" data-category="all">🛒 全部</button>';
+        appData.categories.forEach(c => html += `<button class="category-tab">${escapeHtml(c)}</button>`);
+        $categoryTabs.innerHTML = html;
+        $categoryTabs.querySelectorAll('.category-tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                $categoryTabs.querySelectorAll('.category-tab').forEach(t => t.classList.remove('active'));
+                tab.classList.add('active');
+                currentCategory = tab.dataset.category || tab.textContent;
+                renderItems();
+            });
+        });
+        updateCategorySelect();
+    }
+
+    function updateCategorySelect() {
+        $itemCategory.innerHTML = '<option value="">未分类</option>' + 
+            appData.categories.map(c => `<option>${escapeHtml(c)}</option>`).join('');
+    }
+
+    $('addCategoryBtn').addEventListener('click', async () => {
+        if (currentUser.role !== 'admin') return showToast('仅管理员');
+        const name = $newCategoryInput.value.trim();
+        if (!name) return showToast('输入分类名');
+        if (appData.categories.includes(name)) return showToast('已存在');
+        await addCategoryToCloud(name); await fetchAllData();
+        $itemCategory.value = name; $newCategoryInput.value = '';
+        renderCategoryTabs();
+        await addAnnouncementToCloud(`📂 新增分类：${name}`, 'category');
+        await fetchAllData(); updateHornBar();
+        showToast('✅ 分类已添加');
+    });
+
+    function getFilteredItems() {
+        let items = appData.items || [];
+        if (currentCategory !== 'all') items = items.filter(i => i.category === currentCategory);
+        if (searchKeyword.trim()) {
+            const kw = searchKeyword.trim().toLowerCase();
+            items = items.filter(i => i.name.toLowerCase().includes(kw));
+        }
+        return items;
+    }
+
+    function renderItems() {
+        const items = getFilteredItems();
+        if (!items.length) {
+            $itemsContainer.innerHTML = `<div class="empty-state"><span class="empty-icon">📦</span><p>${searchKeyword ? '没搜到相关商品' : '暂无商品'}</p></div>`;
+            return;
+        }
+        const isAdmin = currentUser?.role === 'admin';
+        let html = '';
+        items.forEach(item => {
+            const hasImg = item.image && item.image.trim();
+            const catTag = item.category ? `<span class="category-tag">${escapeHtml(item.category)}</span>` : '';
+            const oosOverlay = item.outOfStock ? '<div class="outofstock-overlay">🚫 缺货</div>' : '';
+            const adminBtns = isAdmin ? `<div class="admin-actions">
+                <button class="admin-btn oos" data-id="${item.id}">🚫</button>
+                <button class="admin-btn edit" data-id="${item.id}">✎</button>
+                <button class="admin-btn del" data-id="${item.id}">✕</button>
+            </div>` : '';
+            html += `<div class="item-card ${item.outOfStock ? 'out-of-stock' : ''}" data-id="${item.id}">
+                <div class="img-wrap">${hasImg ? `<img src="${item.image}">` : '<span class="placeholder">📷</span>'}${oosOverlay}${catTag}${adminBtns}</div>
+                <div class="info"><div class="name">${escapeHtml(item.name)}</div><div class="price">${escapeHtml(item.price||'')}</div></div>
+            </div>`;
+        });
+        $itemsContainer.innerHTML = html;
+
+        $itemsContainer.querySelectorAll('.item-card').forEach(card => {
+            card.addEventListener('click', e => {
+                if (e.target.closest('.admin-btn')) return;
+                const item = appData.items.find(i => i.id === card.dataset.id);
+                if (item) showItemDetail(item);
+            });
+        });
+        if (isAdmin) {
+            $itemsContainer.querySelectorAll('.admin-btn.oos').forEach(btn => {
+                btn.addEventListener('click', e => { e.stopPropagation();
+                    const item = appData.items.find(i => i.id === btn.dataset.id);
+                    if (item) toggleOutOfStock(item.id, item.outOfStock); });
+            });
+            $itemsContainer.querySelectorAll('.admin-btn.edit').forEach(btn => {
+                btn.addEventListener('click', e => { e.stopPropagation();
+                    const item = appData.items.find(i => i.id === btn.dataset.id);
+                    if (item) openEditModal(item); });
+            });
+            $itemsContainer.querySelectorAll('.admin-btn.del').forEach(btn => {
+                btn.addEventListener('click', e => { e.stopPropagation();
+                    const item = appData.items.find(i => i.id === btn.dataset.id);
+                    if (item && confirm(`删除「${item.name}」？`)) deleteItem(item.id); });
+            });
+        }
+    }
+
+    function showItemDetail(item) {
+        const overlay = document.createElement('div');
+        overlay.className = 'modal-overlay';
+        overlay.innerHTML = `<div class="modal-sheet" style="text-align:center;">
+            ${item.image ? `<img src="${item.image}" style="max-width:100%;max-height:250px;">` : '<div style="font-size:60px;">📷</div>'}
+            <h2>${escapeHtml(item.name)}</h2><p style="font-size:24px;color:#e74c3c;">${escapeHtml(item.price||'')}</p>
+            ${item.category ? `<p>📂 ${escapeHtml(item.category)}</p>` : ''}
+            ${item.outOfStock ? '<p style="color:red;">⚠️ 缺货</p>' : '<p style="color:green;">✅ 有货</p>'}
+            <button class="btn btn-primary" style="margin-top:16px;width:100%;">关闭</button></div>`;
+        document.body.appendChild(overlay);
+        overlay.addEventListener('click', e => { if (e.target === overlay || e.target.tagName==='BUTTON') overlay.remove(); });
+    }
+
+    $searchInput.addEventListener('input', () => { searchKeyword = $searchInput.value; renderItems(); });
+
+    function openAddModal() {
+        if (currentUser.role !== 'admin') return showToast('仅管理员');
+        editingItemId = null; $editingItemId.value = '';
+        $modalTitle.textContent = '➕ 添加商品';
+        $itemName.value = ''; $itemPrice.value = ''; $itemCategory.value = '';
+        $('imgDataUrl').value = ''; $('imgPreview').style.display = 'none';
+        $('modalDeleteRow').style.display = 'none';
+        updateCategorySelect(); $itemModal.style.display = 'flex';
+    }
+
+    function openEditModal(item) {
+        editingItemId = item.id; $editingItemId.value = item.id;
+        $modalTitle.textContent = '✏️ 编辑商品';
+        $itemName.value = item.name; $itemPrice.value = item.price || '';
+        $itemCategory.value = item.category || '';
+        $('imgDataUrl').value = item.image || '';
+        if (item.image) { $('imgPreview').src = item.image; $('imgPreview').style.display = 'block'; }
+        else $('imgPreview').style.display = 'none';
+        $('modalDeleteRow').style.display = 'flex';
+        updateCategorySelect(); $itemModal.style.display = 'flex';
+    }
+
+    function closeModal() { $itemModal.style.display = 'none'; }
+
+    async function saveItem() {
+        if (currentUser.role !== 'admin') return;
+        const name = $itemName.value.trim(), price = $itemPrice.value.trim();
+        const category = $itemCategory.value, image = $('imgDataUrl').value;
+        if (!name) return showToast('请输入名称');
+        if (!price) return showToast('请输入价格');
+        if (editingItemId) {
+            await updateItemInCloud(editingItemId, { name, price, category, image });
+            await addAnnouncementToCloud(`✏️ ${name} 已更新`, 'update');
+        } else {
+            await saveItemToCloud({ name, price, category, image, outOfStock: false });
+            await addAnnouncementToCloud(`🆕 新增：${name} ${price}`, 'add');
+        }
+        closeModal(); await fetchAllData(); renderAll();
+        showToast('✅ 保存成功');
+    }
+
+    async function deleteItem(id) {
+        if (currentUser.role !== 'admin') return;
+        const item = appData.items.find(i => i.id === id);
+        if (!item) return;
+        await deleteItemFromCloud(id);
+        await addAnnouncementToCloud(`🗑️ 删除：${item.name}`, 'delete');
+        closeModal(); await fetchAllData(); renderAll();
+    }
+
+    $('imgUploadBtn').addEventListener('click', () => $('imageInput').click());
+    $('imageInput').addEventListener('change', function() {
+        const file = this.files[0];
+        if (!file || !file.type.startsWith('image/')) return;
+        const reader = new FileReader();
+        reader.onload = e => {
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                let w = img.width, h = img.height, max = 800;
+                if (w > max || h > max) { if (w > h) { h = h * max / w; w = max; } else { w = w * max / h; h = max; } }
+                canvas.width = w; canvas.height = h;
+                canvas.getContext('2d').drawImage(img, 0, 0, w, h);
+                const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                $('imgDataUrl').value = compressed;
+                $('imgPreview').src = compressed; $('imgPreview').style.display = 'block';
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    $('modalCancel').addEventListener('click', closeModal);
+    $('modalSave').addEventListener('click', saveItem);
+    $('modalDelete').addEventListener('click', () => {
+        if ($editingItemId.value && confirm('确定删除吗？')) deleteItem($editingItemId.value);
+    });
+    $itemModal.addEventListener('click', e => { if (e.target === $itemModal) closeModal(); });
+    $fabAdd.addEventListener('click', openAddModal);
+
+    async function renderAll() {
+        await fetchAllData(); renderCategoryTabs(); renderItems();
+        updateHornBar(); updateOutOfStockBar(); updateUserUI();
+    }
+
+    setInterval(async () => {
+        if (currentUser) { await fetchAllData(); renderItems(); updateOutOfStockBar(); }
+    }, 10000);
+
+    (async function() {
+        if (!localStorage.getItem(USERS_KEY)) localStorage.setItem(USERS_KEY, JSON.stringify(DEFAULT_USERS));
+        const session = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+        if (session) {
+            const users = getUsers();
+            if (users[session.account] && users[session.account].role === session.role) {
+                currentUser = session; await showMainPage(); return;
+            }
+        }
+        $loginPage.style.display = 'flex'; $mainPage.style.display = 'none';
+    })();
+</script>
 </body>
 </html>
