@@ -403,6 +403,9 @@ if(kw)items=items.filter(i=>i.name.toLowerCase().includes(kw));
     localStorage.removeItem(SESSION_KEY);
     currentUser=null;
     $('loginOverlay').style.display='flex';
+    $('loginAccount').value='';
+    $('loginPassword').value='';
+    $('loginError').textContent='';
     showToast('已退出登录');
 });
 
