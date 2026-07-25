@@ -172,7 +172,7 @@
     const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const USERS_KEY='xmb_users', SESSION_KEY='xmb_session';
-    const DEFAULT_USERS={'2580':{password:'2580',role:'admin',nickname:'管理员'},'111':{password:'111',role:'viewer',nickname:'店员小王'},'222':{password:'222',role:'viewer',nickname:'店员小李'}};
+    const DEFAULT_USERS={'000':{password:'000',role:'admin',nickname:'管理员'},'111':{password:'111',role:'viewer',nickname:'店员小王'},'222':{password:'222',role:'viewer',nickname:'店员小李'}};
     let appData={items:[],categories:[],announcements:[]},currentUser=null,activeCat='all',editingId=null;
 
     const $=id=>document.getElementById(id);
