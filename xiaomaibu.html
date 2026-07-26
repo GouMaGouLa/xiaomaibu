@@ -235,11 +235,14 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
         }
     }
     async function toggleOOS(item){
-    const newStatus = !item.outOfStock;
-    await updateItem(item.id,{outOfStock:newStatus});
+    await updateItem(item.id,{outOfStock:!item.outOfStock});
     await fetchAll();
-    renderAll();
-    showToast(newStatus?'已标记缺货':'已标记有货');
+    renderSidebar();
+    renderProductList();
+    renderProductList('oosList',true);
+    updateBadge();
+    updateHorn();
+    fillCatSelects();
 }
     function openEdit(item){
         editingId=item.id;$('editId').value=item.id;
