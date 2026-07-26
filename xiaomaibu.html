@@ -239,6 +239,7 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
     await updateItem(item.id,{outOfStock:newStatus});
     item.outOfStock = newStatus;
     renderAll();
+    showToast(newStatus?'缺货啦！(T~T)':'已经补上货啦^-^');
 }
     function openEdit(item){
         editingId=item.id;$('editId').value=item.id;
