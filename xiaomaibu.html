@@ -236,6 +236,7 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
     }
     async function toggleOOS(item){
     await updateItem(item.id,{outOfStock:!item.outOfStock});
+    await new Promise(r=>setTimeout(r,500));
     await fetchAll();
     renderAll();
 }
