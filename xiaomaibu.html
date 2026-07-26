@@ -282,7 +282,7 @@ if(currentUser){
 }
     }
 
-    document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));item.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('page-'+item.dataset.page.split('-')[1]).classList.add('active');});});
+    document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));item.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('page-'+item.dataset.page.split('-')[1]).classList.add('active');if(item.dataset.page==='page-admin')fillCatSelects();});});
 
     $('adminImageBtn').addEventListener('click',()=>$('adminImageInput').click());
     $('adminImageInput').addEventListener('change',function(){
