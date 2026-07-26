@@ -269,9 +269,18 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
     async function renderAll(){
         renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();bindProductActions();
         const uLabel=$('userLabel'),uBadge=$('userBadge');
-        uLabel.textContent=currentUser?.nickname||'未登录';
-        uBadge.className='user-info'+(currentUser?.role==='admin'?' admin':'');
-        $('navAdmin').style.display=currentUser?.role==='admin'?'flex':'none';
+if(currentUser){
+    uLabel.textContent=currentUser.nickname;
+    uBadge.className='user-info'+(currentUser.role==='admin'?' admin':'');
+}else{
+    uLabel.textContent='未登录';
+    uBadge.className='user-info';
+}
+        if(currentUser && currentUser.role==='admin'){
+    $('navAdmin').style.display='flex';
+}else{
+    $('navAdmin').style.display='none';
+}
     }
 
     document.querySelectorAll('.nav-item').forEach(item=>{item.addEventListener('click',()=>{document.querySelectorAll('.nav-item').forEach(i=>i.classList.remove('active'));item.classList.add('active');document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));$('page-'+item.dataset.page.split('-')[1]).classList.add('active');});});
