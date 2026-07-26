@@ -227,8 +227,8 @@
             row.addEventListener('click',e=>{if(e.target.closest('.btn-mini'))return;const item=appData.items.find(i=>i.id===row.dataset.id);if(item)alert(`${item.name}\n${item.price||''}\n${item.outOfStock?'⚠️缺货':'✅有货'}`);});
         });
         if(isAdmin){
-            container.querySelectorAll('.btn-mini.edit').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const item=appData.items.find(i=>i.id===b.dataset.id);if(item)openEdit(item);}));
-            container.querySelectorAll('.btn-mini.oos').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const item=appData.items.find(i=>i.id===b.dataset.id);if(item)toggleOOS(item);}));
+            container.querySelectorAll('.btn-mini.edit').forEach(b=>{b.onclick=function(e){e.stopPropagation();const item=appData.items.find(i=>i.id===this.dataset.id);if(item)openEdit(item);};});
+            container.querySelectorAll('.btn-mini.oos').forEach(b=>{b.onclick=function(e){e.stopPropagation();const item=appData.items.find(i=>i.id===this.dataset.id);if(item)toggleOOS(item);};});
         }
     }
     async function toggleOOS(item){await updateItem(item.id,{outOfStock:!item.outOfStock});await fetchAll();renderAll();showToast(item.outOfStock?'已标记有货':'已标记缺货');}
