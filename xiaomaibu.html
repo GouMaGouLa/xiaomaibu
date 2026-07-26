@@ -197,7 +197,7 @@
     async function delItem(id){await supabase.from('items').delete().eq('id',id);}
     async function addCat(name){await supabase.from('categories').insert([{name}]);}
     async function addAnn(content){await supabase.from('announcements').insert([{content,type:'info'}]);}
-    window._toggleOOS=async function(id){alert('切换缺货：'+id);const item=appData.items.find(i=>i.id===id);if(item)await toggleOOS(item);};
+    window._toggleOOS=async function(id){const item=appData.items.find(i=>String(i.id)===String(id));if(item)await toggleOOS(item);else alert('未找到商品：'+id);};
     window._testClick=function(){alert('按钮被点击了！');};
 window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(item)openEdit(item);};
     async function initData(){const{c}=await supabase.from('items').select('*',{count:'exact',head:true});if(c===0){for(const n of['零食','饮料','日用品','调料','冷冻食品','酒类'])await addCat(n);
