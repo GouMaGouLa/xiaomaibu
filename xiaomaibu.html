@@ -265,6 +265,7 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
     function fillCatSelects(){const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('editCatSelect').innerHTML=html;$('adminCategory').innerHTML='<option value="">选择分类</option>'+html;$('editCategory').innerHTML='<option value="">选择分类</option>'+html;}
 
     async function renderAll(){
+        alert('renderAll执行了');
         renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();bindProductActions();
         const uLabel=$('userLabel'),uBadge=$('userBadge');
         uLabel.textContent=currentUser?.nickname||'未登录';
