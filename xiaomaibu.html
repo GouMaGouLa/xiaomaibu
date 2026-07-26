@@ -258,7 +258,7 @@
     function fillCatSelects(){const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('editCatSelect').innerHTML=html;$('adminCategory').innerHTML='<option value="">选择分类</option>'+html;$('editCategory').innerHTML='<option value="">选择分类</option>'+html;}
 
     async function renderAll(){
-        renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();
+        renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();bindProductActions();
         const uLabel=$('userLabel'),uBadge=$('userBadge');
         uLabel.textContent=currentUser?.nickname||'未登录';
         uBadge.className='user-info'+(currentUser?.role==='admin'?' admin':'');
@@ -297,6 +297,16 @@
         await supabase.from('categories').delete().eq('name',name);await addAnn(`🗑️ 删除分类：${name}`);
         await fetchAll();renderAll();showToast('✅ 分类已删除');
     });
+    function bindProductActions(){
+    const isAdmin=currentUser?.role==='admin';
+    if(!isAdmin)return;
+    document.querySelectorAll('.btn-mini.edit').forEach(b=>{
+        b.onclick=function(e){e.stopPropagation();const item=appData.items.find(i=>i.id===this.dataset.id);if(item)openEdit(item);};
+    });
+    document.querySelectorAll('.btn-mini.oos').forEach(b=>{
+        b.onclick=function(e){e.stopPropagation();const item=appData.items.find(i=>i.id===this.dataset.id);if(item)toggleOOS(item);};
+    });
+}
 
     // 副账号点击右上角退出
     $('userBadge').addEventListener('click',()=>{
@@ -308,7 +318,7 @@
         }
     });
 
-    $('searchInput').addEventListener('input',()=>{renderProductList();});
+   $('searchInput').addEventListener('input',()=>{renderProductList();bindProductActions();});
     (async function(){
         if(!localStorage.getItem(USERS_KEY))localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));
         if(loginCheck()){$('loginOverlay').style.display='none';await initData();await fetchAll();renderAll();setInterval(async()=>{if(currentUser){await fetchAll();renderAll();}},15000);}
