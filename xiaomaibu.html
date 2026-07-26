@@ -228,7 +228,7 @@
         });
         if(isAdmin){
             container.querySelectorAll('.btn-mini.edit').forEach(b=>{b.onclick=function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)openEdit(item);};});
-            container.querySelectorAll('.btn-mini.oos').forEach(b=>{b.onclick=function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)toggleOOS(item);};});
+            container.querySelectorAll('.btn-mini.oos').forEach(b=>{b.onclick=async function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)await toggleOOS(item);};});
         }
     }
     async function toggleOOS(item){await updateItem(item.id,{outOfStock:!item.outOfStock});await fetchAll();renderAll();showToast(item.outOfStock?'已标记有货':'已标记缺货');}
@@ -304,7 +304,7 @@
         b.onclick=function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)openEdit(item);};
     });
     document.querySelectorAll('.btn-mini.oos').forEach(b=>{
-        b.onclick=function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)toggleOOS(item);};
+        b.onclick=async function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)await toggleOOS(item);};
     });
 }
 
