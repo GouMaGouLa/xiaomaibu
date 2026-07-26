@@ -197,7 +197,7 @@
     async function delItem(id){await supabase.from('items').delete().eq('id',id);}
     async function addCat(name){await supabase.from('categories').insert([{name}]);}
     async function addAnn(content){await supabase.from('announcements').insert([{content,type:'info'}]);}
-    window._toggleOOS=async function(id){const item=appData.items.find(i=>i.id===id);if(item)await toggleOOS(item);};
+    window._toggleOOS=async function(id){alert('切换缺货：'+id);const item=appData.items.find(i=>i.id===id);if(item)await toggleOOS(item);};
     window._testClick=function(){alert('按钮被点击了！');};
 window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(item)openEdit(item);};
     async function initData(){const{c}=await supabase.from('items').select('*',{count:'exact',head:true});if(c===0){for(const n of['零食','饮料','日用品','调料','冷冻食品','酒类'])await addCat(n);
@@ -224,7 +224,7 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
             <div class="product-row ${item.outOfStock?'oos':''}" data-id="${item.id}">
                 <div class="product-img">${item.image?`<img src="${item.image}">`:'📷'}</div>
                 <div class="product-info"><div class="product-name">${esc(item.name)}</div><div class="product-price">${esc(item.price||'')}</div></div>
-                ${isAdmin?`<div class="product-actions"><button class="btn-mini oos" onclick="window._testClick()">🚫</button><button class="btn-mini edit" onclick="window._openEdit('${item.id}')">✎</button></div>`:''}
+                ${isAdmin?`<div class="product-actions"><button class="btn-mini oos" onclick="window._toggleOOS('${item.id}')">🚫</button><button class="btn-mini edit" onclick="window._openEdit('${item.id}')">✎</button></div>`:''}
             </div>`).join('');
         container.querySelectorAll('.product-row').forEach(row=>{
             row.addEventListener('click',function(e){if(e.target.closest('.btn-mini'))return;const item=appData.items.find(i=>i.id===this.dataset.id);if(item)alert(`${item.name}\n${item.price||''}\n${item.outOfStock?'⚠️缺货':'✅有货'}`);});
