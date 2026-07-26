@@ -193,7 +193,7 @@
         appData.announcements=c.data.map(i=>({content:i.content}));
     }
     async function saveItem(it){await supabase.from('items').insert([{name:it.name,price:it.price,category:it.category||'',image:it.image||'',out_of_stock:false}]);}
-    async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});const r=await supabase.from('items').update(f).eq('id',id);if(r.error)alert('更新失败:'+r.error.message);else alert('更新成功');}
+    async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});await supabase.from('items').update(f).eq('id',id);}
     async function delItem(id){await supabase.from('items').delete().eq('id',id);}
     async function addCat(name){await supabase.from('categories').insert([{name}]);}
     async function addAnn(content){await supabase.from('announcements').insert([{content,type:'info'}]);}
@@ -235,9 +235,9 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
         }
     }
     async function toggleOOS(item){
-    await updateItem(item.id,{outOfStock:!item.outOfStock});
-    await new Promise(r=>setTimeout(r,500));
-    await fetchAll();
+    const newStatus = !item.outOfStock;
+    await updateItem(item.id,{outOfStock:newStatus});
+    item.outOfStock = newStatus;
     renderAll();
 }
     function openEdit(item){
@@ -266,7 +266,6 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
     function fillCatSelects(){const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('editCatSelect').innerHTML=html;$('adminCategory').innerHTML='<option value="">选择分类</option>'+html;$('editCategory').innerHTML='<option value="">选择分类</option>'+html;}
 
     async function renderAll(){
-        alert('renderAll执行了');
         renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();bindProductActions();
         const uLabel=$('userLabel'),uBadge=$('userBadge');
         uLabel.textContent=currentUser?.nickname||'未登录';
