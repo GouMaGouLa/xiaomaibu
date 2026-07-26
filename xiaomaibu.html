@@ -338,6 +338,10 @@ if(currentUser){
         const u=getUsers()[acc];if(!u||u.password!==pwd){$('loginError').textContent='账号或密码错误';return;}
         currentUser={account:acc,role:u.role,nickname:u.nickname};localStorage.setItem(SESSION_KEY,JSON.stringify(currentUser));
         $('loginOverlay').style.display='none';await initData();await fetchAll();renderAll();
+const ul=$('userLabel');const ub=$('userBadge');
+ul.textContent=currentUser.nickname;
+ub.className='user-info'+(currentUser.role==='admin'?' admin':'');
+if(currentUser.role!=='admin')$('navAdmin').style.display='none';
         setInterval(async()=>{if(currentUser){await fetchAll();renderAll();}},15000);
     });
     $('loginPassword').addEventListener('keydown',e=>{if(e.key==='Enter')$('loginBtn').click();});
