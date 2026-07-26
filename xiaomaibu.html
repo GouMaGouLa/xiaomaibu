@@ -224,7 +224,7 @@
                 ${isAdmin?`<div class="product-actions"><button class="btn-mini oos" data-id="${item.id}">🚫</button><button class="btn-mini edit" data-id="${item.id}">✎</button></div>`:''}
             </div>`).join('');
         container.querySelectorAll('.product-row').forEach(row=>{
-            row.addEventListener('click',e=>{if(e.target.closest('.btn-mini'))return;const item=appData.items.find(i=>i.id===row.dataset.id);if(item)alert(`${item.name}\n${item.price||''}\n${item.outOfStock?'⚠️缺货':'✅有货'}`);});
+            row.addEventListener('click',function(e){if(e.target.closest('.btn-mini'))return;const item=appData.items.find(i=>i.id===this.dataset.id);if(item)alert(`${item.name}\n${item.price||''}\n${item.outOfStock?'⚠️缺货':'✅有货'}`);});
         });
         if(isAdmin){
             container.querySelectorAll('.btn-mini.edit').forEach(b=>{b.onclick=function(e){e.stopPropagation();const item=appData.items.find(i=>i.id===this.dataset.id);if(item)openEdit(item);};});
@@ -299,7 +299,6 @@
     });
    function bindProductActions(){
     const isAdmin=currentUser?.role==='admin';
-    alert('管理员：'+isAdmin+'，编辑按钮数：'+document.querySelectorAll('.btn-mini.edit').length);
     if(!isAdmin)return;
     document.querySelectorAll('.btn-mini.edit').forEach(b=>{
         b.onclick=function(e){e.stopPropagation();const item=appData.items.find(i=>i.id===this.dataset.id);if(item)openEdit(item);};
