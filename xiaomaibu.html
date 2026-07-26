@@ -193,13 +193,7 @@
         appData.announcements=c.data.map(i=>({content:i.content}));
     }
     async function saveItem(it){await supabase.from('items').insert([{name:it.name,price:it.price,category:it.category||'',image:it.image||'',out_of_stock:false}]);}
-    async function updateItem(id,d){
-    alert('updateItem被调用，id='+id+'，数据='+JSON.stringify(d));
-    const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});
-    const result = await supabase.from('items').update(f).eq('id',id);
-    if(result.error) alert('更新失败：'+result.error.message);
-    else alert('更新成功');
-}
+    async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});await supabase.from('items').update(f).eq('id',id);}
     async function delItem(id){await supabase.from('items').delete().eq('id',id);}
     async function addCat(name){await supabase.from('categories').insert([{name}]);}
     async function addAnn(content){await supabase.from('announcements').insert([{content,type:'info'}]);}
@@ -241,18 +235,9 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
         }
     }
     async function toggleOOS(item){
-    alert('1');
     await updateItem(item.id,{outOfStock:!item.outOfStock});
-    alert('2');
     await fetchAll();
-    alert('3');
-    renderSidebar();
-    renderProductList();
-    renderProductList('oosList',true);
-    updateBadge();
-    updateHorn();
-    fillCatSelects();
-    alert('4');
+    renderAll();
 }
     function openEdit(item){
         editingId=item.id;$('editId').value=item.id;
