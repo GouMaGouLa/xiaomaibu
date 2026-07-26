@@ -229,8 +229,8 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
             row.addEventListener('click',function(e){if(e.target.closest('.btn-mini'))return;const item=appData.items.find(i=>i.id===this.dataset.id);if(item)alert(`${item.name}\n${item.price||''}\n${item.outOfStock?'⚠️缺货':'✅有货'}`);});
         });
         if(isAdmin){
-            container.querySelectorAll('.btn-mini.edit').forEach(b=>{b.onclick=function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)openEdit(item);};});
-            container.querySelectorAll('.btn-mini.oos').forEach(b=>{b.onclick=async function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)await toggleOOS(item);};});
+            
+            
         }
     }
     async function toggleOOS(item){await updateItem(item.id,{outOfStock:!item.outOfStock});await fetchAll();renderAll();showToast(item.outOfStock?'已标记有货':'已标记缺货');}
@@ -299,16 +299,7 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
         await supabase.from('categories').delete().eq('name',name);await addAnn(`🗑️ 删除分类：${name}`);
         await fetchAll();renderAll();showToast('✅ 分类已删除');
     });
-   function bindProductActions(){
-    const isAdmin=currentUser?.role==='admin';
-    if(!isAdmin)return;
-    document.querySelectorAll('.btn-mini.edit').forEach(b=>{
-        b.onclick=function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)openEdit(item);};
-    });
-    document.querySelectorAll('.btn-mini.oos').forEach(b=>{
-        b.onclick=async function(e){e.stopPropagation();const id=this.getAttribute('data-id');const item=appData.items.find(i=>i.id===id);if(item)await toggleOOS(item);};
-    });
-}
+   
 
     // 副账号点击右上角退出
     $('userBadge').addEventListener('click',()=>{
