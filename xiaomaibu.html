@@ -297,8 +297,9 @@
         await supabase.from('categories').delete().eq('name',name);await addAnn(`🗑️ 删除分类：${name}`);
         await fetchAll();renderAll();showToast('✅ 分类已删除');
     });
-    function bindProductActions(){
+   function bindProductActions(){
     const isAdmin=currentUser?.role==='admin';
+    alert('管理员：'+isAdmin+'，编辑按钮数：'+document.querySelectorAll('.btn-mini.edit').length);
     if(!isAdmin)return;
     document.querySelectorAll('.btn-mini.edit').forEach(b=>{
         b.onclick=function(e){e.stopPropagation();const item=appData.items.find(i=>i.id===this.dataset.id);if(item)openEdit(item);};
