@@ -234,7 +234,13 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
             
         }
     }
-    async function toggleOOS(item){alert('进入toggleOOS');await updateItem(item.id,{outOfStock:!item.outOfStock});await fetchAll();renderAll();showToast(item.outOfStock?'已标记有货':'已标记缺货');}
+    async function toggleOOS(item){
+    const newStatus = !item.outOfStock;
+    await updateItem(item.id,{outOfStock:newStatus});
+    await fetchAll();
+    renderAll();
+    showToast(newStatus?'已标记缺货':'已标记有货');
+}
     function openEdit(item){
         editingId=item.id;$('editId').value=item.id;
         $('editName').value=item.name;$('editPrice').value=item.price||'';
