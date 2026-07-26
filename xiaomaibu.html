@@ -235,14 +235,18 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
         }
     }
     async function toggleOOS(item){
+    alert('1');
     await updateItem(item.id,{outOfStock:!item.outOfStock});
+    alert('2');
     await fetchAll();
+    alert('3');
     renderSidebar();
     renderProductList();
     renderProductList('oosList',true);
     updateBadge();
     updateHorn();
     fillCatSelects();
+    alert('4');
 }
     function openEdit(item){
         editingId=item.id;$('editId').value=item.id;
