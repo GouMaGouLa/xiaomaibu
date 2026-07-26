@@ -266,7 +266,6 @@ window._openEdit=function(id){const item=appData.items.find(i=>i.id===id);if(ite
     function updateHorn(){const a=appData.announcements||[];$('hornText').textContent=a.length?a[0].content:'暂无公告';$('adminHornText').textContent=a.length?a.slice(0,10).map(x=>x.content).join('\n'):'暂无公告';}
     function fillCatSelects(){const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('editCatSelect').innerHTML=html;$('adminCategory').innerHTML='<option value="">选择分类</option>'+html;$('editCategory').innerHTML='<option value="">选择分类</option>'+html;}
 
-    if(!currentUser)return;
     async function renderAll(){
         renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();bindProductActions();
         const uLabel=$('userLabel'),uBadge=$('userBadge');
