@@ -193,7 +193,7 @@
         appData.announcements=c.data.map(i=>({content:i.content}));
     }
     async function saveItem(it){await supabase.from('items').insert([{name:it.name,price:it.price,category:it.category||'',image:it.image||'',out_of_stock:false}]);}
-    async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});await supabase.from('items').update(f).eq('id',id);}
+    async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});const r=await supabase.from('items').update(f).eq('id',id);if(r.error)alert('更新失败:'+r.error.message);else alert('更新成功');}
     async function delItem(id){await supabase.from('items').delete().eq('id',id);}
     async function addCat(name){await supabase.from('categories').insert([{name}]);}
     async function addAnn(content){await supabase.from('announcements').insert([{content,type:'info'}]);}
