@@ -1,0 +1,14 @@
+name: keepalive
+
+on:
+  schedule:
+    - cron: '0 0 * * *'  # 每天UTC 0点，相当于北京时间早上8点
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Wake Supabase
+        run: |
+          curl -s -o /dev/null -w "%{http_code}" "https://kmajgywqhdvxbmxhuqxa.supabase.co/rest/v1/items?limit=1" -H "apikey: sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW" -H "Authorization: Bearer sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW"
