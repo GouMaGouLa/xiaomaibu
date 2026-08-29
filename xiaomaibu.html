@@ -182,7 +182,7 @@
 
     async function fetchAll(){
         const[a,b,c]=await Promise.all([
-            supabase.from('items').select('*').order('updated_at',{ascending:false}),
+            supabase.from('items').select('id,name,price,category,out_of_stock').order('updated_at',{ascending:false}),
             supabase.from('categories').select('*'),
             supabase.from('announcements').select('*').order('created_at',{ascending:false}).limit(30)
         ]);
