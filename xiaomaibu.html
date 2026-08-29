@@ -181,16 +181,28 @@
     function loginCheck(){return false;}
 
     async function fetchAll(){
-        const[a,b,c]=await Promise.all([
-            supabase.from('items').select('id,name,price,category,out_of_stock').order('updated_at',{ascending:false}),
-            supabase.from('categories').select('*'),
-            supabase.from('announcements').select('*').order('created_at',{ascending:false}).limit(30)
+    try{
+        const base='https://kmajgywqhdvxbmxhuqxa.supabase.co/rest/v1/';
+        const headers={
+            'apikey':'sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW',
+            'Authorization':'Bearer sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW'
+        };
+        const [a,b,c]=await Promise.all([
+            fetch(base+'items?select=id,name,price,category,out_of_stock,image&order=updated_at.desc',{headers}),
+            fetch(base+'categories?select=name',{headers}),
+            fetch(base+'announcements?select=content&order=created_at.desc&limit=30',{headers})
         ]);
-        if(a.error||b.error||c.error)return;
-        appData.items=a.data.map(i=>({id:i.id,name:i.name,price:i.price,category:i.category,image:i.image,outOfStock:i.out_of_stock}));
-        appData.categories=b.data.map(i=>i.name);
-        appData.announcements=c.data.map(i=>({content:i.content}));
+        if(!a.ok||!b.ok||!c.ok){console.error('加载失败');return;}
+        const items=await a.json();
+        const cats=await b.json();
+        const anns=await c.json();
+        appData.items=items.map(i=>({id:i.id,name:i.name,price:i.price,category:i.category,image:i.image||'',outOfStock:i.out_of_stock}));
+        appData.categories=cats.map(x=>x.name);
+        appData.announcements=anns.map(x=>({content:x.content}));
+    }catch(e){
+        console.error('fetchAll错误',e);
     }
+}
     async function saveItem(it){await supabase.from('items').insert([{name:it.name,price:it.price,category:it.category||'',image:it.image||'',out_of_stock:false}]);}
     async function updateItem(id,d){const f={};['name','price','category','image','out_of_stock'].forEach(k=>{if(d[k]!==undefined)f[k]=d[k];});await supabase.from('items').update(f).eq('id',id);}
     async function delItem(id){await supabase.from('items').delete().eq('id',id);}
