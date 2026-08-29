@@ -262,7 +262,13 @@ window._openEdit=function(id){const item=appData.items.find(i=>String(i.id)===St
     $('editModal').addEventListener('click',e=>{if(e.target===$('editModal'))$('editModal').style.display='none';});
 
     function updateBadge(){const cnt=appData.items.filter(i=>i.outOfStock).length;const b=$('oosBadge');b.textContent=cnt;b.style.display=cnt?'inline-block':'none';}
-    function updateHorn(){const a=appData.announcements||[];$('hornText').textContent=a.length?a[0].content:'暂无公告';$('adminHornText').textContent=a.length?a.slice(0,10).map(x=>x.content).join('\n'):'暂无公告';}
+    function updateHorn(){
+    const a=appData.announcements||[];
+    const hornEl=$('hornText');
+    const adminEl=$('adminHornText');
+    if(hornEl)hornEl.textContent=a.length?a[0].content:'暂无公告';
+    if(adminEl)adminEl.textContent=a.length?a.slice(0,10).map(x=>x.content).join('\n'):'暂无公告';
+}
     function fillCatSelects(){const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('editCatSelect').innerHTML=html;$('adminCategory').innerHTML='<option value="">选择分类</option>'+html;$('editCategory').innerHTML='<option value="">选择分类</option>'+html;}
 
     async function renderAll(){
