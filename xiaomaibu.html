@@ -284,7 +284,7 @@ window._openEdit=function(id){const item=appData.items.find(i=>String(i.id)===St
     function fillCatSelects(){const html=appData.categories.map(c=>`<option value="${esc(c)}">${esc(c)}</option>`).join('');$('editCatSelect').innerHTML=html;$('adminCategory').innerHTML='<option value="">选择分类</option>'+html;$('editCategory').innerHTML='<option value="">选择分类</option>'+html;}
 
     async function renderAll(){
-        renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();bindProductActions();
+        renderSidebar();renderProductList();renderProductList('oosList',true);updateBadge();updateHorn();fillCatSelects();
         const uLabel=$('userLabel'),uBadge=$('userBadge');
 if(currentUser){
     uLabel.textContent=currentUser.nickname;
@@ -365,7 +365,7 @@ if(currentUser){
         }
     });
 
-   $('searchInput').addEventListener('input',()=>{renderProductList();bindProductActions();});
+   $('searchInput').addEventListener('input',()=>{renderProductList();});
     (async function(){
         if(!localStorage.getItem(USERS_KEY))localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));
         if(loginCheck()){$('loginOverlay').style.display='none';await initData();await fetchAll();renderAll();}
