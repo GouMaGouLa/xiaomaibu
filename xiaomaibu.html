@@ -273,7 +273,7 @@ window._openEdit=function(id){const item=appData.items.find(i=>String(i.id)===St
     $('editSave').addEventListener('click',async()=>{
         const name=$('editName').value.trim(),price=$('editPrice').value.trim(),cat=$('editCategory').value;
         if(!name||!price)return showToast('请填写名称和价格');
-        await updateItem(editingId,{name,price,category:cat});await addAnn(`✏️ ${name} 已更新`);await fetchAll();renderAll();
+        await updateItem(editingId,{name,price,category:cat,image:window._editImage||''});await addAnn(`✏️ ${name} 已更新`);await fetchAll();renderAll();
         $('editModal').style.display='none';showToast('✅ 已保存');
     });
     $('editDelete').addEventListener('click',async()=>{
