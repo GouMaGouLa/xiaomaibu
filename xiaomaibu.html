@@ -183,8 +183,20 @@
     function showToast(msg){const t=$('toast');t.textContent=msg;t.style.display='block';clearTimeout(window._tt);window._tt=setTimeout(()=>t.style.display='none',1800);}
     function esc(s){const d=document.createElement('div');d.textContent=s||'';return d.innerHTML;}
     function getUsers(){let u=localStorage.getItem(USERS_KEY);if(u)return JSON.parse(u);localStorage.setItem(USERS_KEY,JSON.stringify(DEFAULT_USERS));return DEFAULT_USERS;}
-    function loginCheck(){return false;}
-
+    function loginCheck(){
+    const s=localStorage.getItem(SESSION_KEY);
+    if(!s)return false;
+    try{
+        const obj=JSON.parse(s);
+        const users=getUsers();
+        const u=users[obj.account];
+        if(u&&u.password===obj.password&&u.role===obj.role){
+            currentUser=obj;
+            return true;
+        }
+    }catch(e){}
+    return false;
+}
     async function fetchAll(){
     try{
         const base='https://kmajgywqhdvxbmxhuqxa.supabase.co/rest/v1/';
