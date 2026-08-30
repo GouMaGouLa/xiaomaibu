@@ -188,7 +188,7 @@
             'Authorization':'Bearer sb_publishable_VLfNp_Epg_QLoMBjFnk8gg_bUMniqOW'
         };
         const [a,b,c]=await Promise.all([
-            fetch(base+'items?select=id,name,price,category,out_of_stock&order=updated_at.desc',{headers}),
+            fetch(base+'items?select=id,name,price,category,out_of_stock,image&order=updated_at.desc',{headers}),
             fetch(base+'categories?select=name',{headers}),
             fetch(base+'announcements?select=content&order=created_at.desc&limit=30',{headers})
         ]);
