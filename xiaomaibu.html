@@ -258,11 +258,18 @@ window._openEdit=function(id){const item=appData.items.find(i=>String(i.id)===St
     showToast(newStatus?'缺货啦！(T~T)':'已经补上货啦^-^');
 }
     function openEdit(item){
-        editingId=item.id;$('editId').value=item.id;
-        $('editName').value=item.name;$('editPrice').value=item.price||'';
-        $('editCategory').innerHTML='<option value="">选择分类</option>'+appData.categories.map(c=>`<option ${c===item.category?'selected':''}>${esc(c)}</option>`).join('');
-        $('editModal').style.display='flex';
+    editingId=item.id;$('editId').value=item.id;
+    $('editName').value=item.name;$('editPrice').value=item.price||'';
+    $('editCategory').innerHTML='<option value="">选择分类</option>'+appData.categories.map(c=>`<option ${c===item.category?'selected':''}>${esc(c)}</option>`).join('');
+    if(item.image){
+        $('editImagePreview').src=item.image;
+        $('editImagePreview').style.display='block';
+    }else{
+        $('editImagePreview').style.display='none';
     }
+    window._editImage=item.image||'';
+    $('editModal').style.display='flex';
+}
     $('editSave').addEventListener('click',async()=>{
         const name=$('editName').value.trim(),price=$('editPrice').value.trim(),cat=$('editCategory').value;
         if(!name||!price)return showToast('请填写名称和价格');
