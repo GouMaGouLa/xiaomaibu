@@ -151,6 +151,11 @@
 <div class="modal-overlay" id="editModal" style="display:none;">
     <div class="modal-sheet">
         <h4>✏️ 编辑商品</h4>
+        <div style="text-align:center;margin-bottom:8px;">
+    <img id="editImagePreview" style="width:100%;max-height:180px;object-fit:contain;border-radius:8px;display:none;">
+    <button class="btn cancel" id="editImageBtn" style="width:100%;margin-top:6px;">📷 更换图片</button>
+    <input type="file" accept="image/*" id="editImageInput" style="display:none;">
+</div>
         <input type="text" id="editName" placeholder="名称">
         <input type="text" id="editPrice" placeholder="价格">
         <select id="editCategory"><option value="">选择分类</option></select>
